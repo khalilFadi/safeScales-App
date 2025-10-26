@@ -26,13 +26,19 @@ jobs:
     
     - name: Get dependencies
       run: flutter pub get
+      
+    - name: Verify Flutter installation
+      run: flutter doctor
     
     - name: Create keystore
       run: |
         echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
     
     - name: Build APK
-      run: flutter build apk --release
+      run: |
+        flutter clean
+        flutter pub get
+        flutter build apk --release --verbose
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
