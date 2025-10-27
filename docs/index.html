@@ -206,7 +206,8 @@
         
         <a href="https://github.com/khalilFadi/safeScales-App/releases/latest/download/app-release.apk" 
            class="download-button" 
-           download="safe-scales.apk">
+           download="safe-scales.apk"
+           id="download-button">
             📱 Download for Android
         </a>
         
@@ -247,7 +248,12 @@
         
         // Fetch latest release info
         fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/releases/latest`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.tag_name) {
                     document.querySelector('.version').textContent = `Version ${data.tag_name}`;
@@ -255,14 +261,20 @@
                     // Find APK asset
                     const apkAsset = data.assets.find(asset => asset.name.includes('.apk'));
                     if (apkAsset) {
-                        const downloadLink = document.querySelector('.download-button');
+                        const downloadLink = document.getElementById('download-button');
                         downloadLink.href = apkAsset.browser_download_url;
+                        console.log('Updated download link to:', apkAsset.browser_download_url);
+                    } else {
+                        console.warn('No APK asset found in latest release');
+                        // Keep the default link which should work if releases exist
                     }
                 }
             })
             .catch(error => {
                 console.error('Could not fetch release info:', error);
-                // Fallback to hardcoded version if API fails
+                console.log('Using fallback download link');
+                // The default href should still work if there are releases
+                // If no releases exist, the user will see a 404, which is expected
             });
     </script>
 </body>
