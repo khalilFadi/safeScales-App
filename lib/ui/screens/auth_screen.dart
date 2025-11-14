@@ -100,65 +100,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  Future<void> _developerLogin({required bool isKhaleel}) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-
-      bool success;
-
-      if (isKhaleel) {
-        success = await _authService.signIn(
-          email: 'khamad@byu.edu',
-          password: 'STPL@2025',
-        );
-      }
-      else {
-        success = await _authService.signIn(
-          email: 'imapepsi@byu.edu',
-          password: 'password',
-        );
-      }
-
-
-      if (!success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Developer login failed'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          setState(() {
-            isLoading = false;
-          });
-        }
-        return;
-      }
-
-      // Navigate to class selection screen after successful login
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ClassSelectionScreen()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
@@ -348,66 +289,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                           ),
                                 ),
                               ),
-                              const SizedBox(height: 20),
-
-                              //TODO: Remove before release
-                              // Developer login button
-                              SizedBox(
-                                width: double.infinity,
-                                height: 50,
-                                child: OutlinedButton(
-                                  onPressed: isLoading ? null : () {
-                                    _developerLogin(isKhaleel: true);
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    side: BorderSide(
-                                      color: theme.colorScheme.primary,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Dev: Khaleel',
-                                    style: TextStyle(
-                                      fontSize: 16 * AppTheme.fontSizeScale,
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              SizedBox(
-                                width: double.infinity,
-                                height: 50,
-                                child: OutlinedButton(
-                                  onPressed: isLoading ? null : () {
-                                    _developerLogin(isKhaleel: false);
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    side: BorderSide(
-                                      color: theme.colorScheme.primary,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Dev: Mia',
-                                    style: TextStyle(
-                                      fontSize: 16 * AppTheme.fontSizeScale,
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
                               const SizedBox(height: 20),
 
                               TextButton(

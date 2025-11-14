@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+// import FirebaseCore  // Temporarily disabled to test if Firebase is causing the crash
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -9,5 +10,6 @@ import UIKit
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    // FirebaseApp.configure()  // Temporarily disabled - Firebase not used in Dart code
   }
 }
