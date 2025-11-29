@@ -4,8 +4,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 class StyledMarkdown extends StatelessWidget {
   final String data;
+  final double fontSizeScale;
 
-  const StyledMarkdown({super.key, required this.data});
+  const StyledMarkdown({
+    super.key,
+    required this.data,
+    this.fontSizeScale = 1.0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,24 +31,46 @@ class StyledMarkdown extends StatelessWidget {
               softLineBreak: true,
               fitContent: false,
               styleSheet: MarkdownStyleSheet(
-                // Text styles
-                p: theme.textTheme.bodyMedium?.copyWith(height: 1.8),
-                h1: theme.textTheme.headlineLarge,
-                h2: theme.textTheme.headlineMedium,
-                h3: theme.textTheme.headlineSmall,
-                h4: theme.textTheme.titleLarge,
-                h5: theme.textTheme.titleMedium,
-                h6: theme.textTheme.titleSmall,
-                em: const TextStyle(fontStyle: FontStyle.italic),
-                strong: const TextStyle(fontWeight: FontWeight.bold),
+                // Text styles with font size scaling
+                p: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.8,
+                  fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
+                ),
+                h1: theme.textTheme.headlineLarge?.copyWith(
+                  fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 30) * fontSizeScale,
+                ),
+                h2: theme.textTheme.headlineMedium?.copyWith(
+                  fontSize: (theme.textTheme.headlineMedium?.fontSize ?? 25) * fontSizeScale,
+                ),
+                h3: theme.textTheme.headlineSmall?.copyWith(
+                  fontSize: (theme.textTheme.headlineSmall?.fontSize ?? 22) * fontSizeScale,
+                ),
+                h4: theme.textTheme.titleLarge?.copyWith(
+                  fontSize: (theme.textTheme.titleLarge?.fontSize ?? 20) * fontSizeScale,
+                ),
+                h5: theme.textTheme.titleMedium?.copyWith(
+                  fontSize: (theme.textTheme.titleMedium?.fontSize ?? 18) * fontSizeScale,
+                ),
+                h6: theme.textTheme.titleSmall?.copyWith(
+                  fontSize: (theme.textTheme.titleSmall?.fontSize ?? 16) * fontSizeScale,
+                ),
+                em: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
+                ),
+                strong: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
+                ),
                 code: TextStyle(
                   fontFamily: 'monospace',
                   backgroundColor: colorScheme.surfaceVariant.withOpacity(0.3),
-                  fontSize: theme.textTheme.bodyMedium?.fontSize,
+                  fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
                 ),
                 blockquote: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
+                  fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
                 ),
 
                 // Block styles

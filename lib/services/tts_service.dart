@@ -12,6 +12,7 @@ class TtsService {
   TtsState _state = TtsState.stopped;
   String? _currentText;
   int? _currentPageIndex;
+  double _currentSpeechRate = 0.8; // Default speed
 
   // Getters
   TtsState get state => _state;
@@ -69,6 +70,9 @@ class TtsService {
       // Stop any current speech
       await stop();
 
+      // Ensure speech rate is applied before speaking
+      await _flutterTts.setSpeechRate(_currentSpeechRate);
+
       // Clean and enhance the text for more natural speech
       String cleanText = _enhanceTextForNaturalSpeech(text);
 
@@ -97,6 +101,8 @@ class TtsService {
   Future<void> resume() async {
     try {
       if (_state == TtsState.paused) {
+        // Ensure speech rate is applied before resuming
+        await _flutterTts.setSpeechRate(_currentSpeechRate);
         await _flutterTts.speak(_currentText ?? '');
         _state = TtsState.playing;
       }
@@ -119,8 +125,25 @@ class TtsService {
   Future<void> setSpeechRate(double rate) async {
     try {
       final clampedRate = rate.clamp(0.0, 2.0);
+      _currentSpeechRate = clampedRate;
+      
+      // If TTS is currently playing, we need to stop and restart with new rate
+      // This ensures speed changes apply immediately
+      final wasPlaying = _state == TtsState.playing;
+      final wasPaused = _state == TtsState.paused;
+      final textToRestart = wasPlaying || wasPaused ? _currentText : null;
+      
+      if (wasPlaying || wasPaused) {
+        await stop();
+      }
+      
       await _flutterTts.setSpeechRate(clampedRate);
       debugPrint('TTS Speech rate set to: $clampedRate');
+      
+      // Restart speech with new rate if it was playing
+      if (wasPlaying && textToRestart != null) {
+        await speak(textToRestart, pageIndex: _currentPageIndex);
+      }
     } catch (e) {
       debugPrint('Error setting speech rate: $e');
     }

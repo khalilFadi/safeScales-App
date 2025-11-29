@@ -6,11 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:safe_scales/ui/screens/pre_quiz/pre_quiz_results_screen.dart';
 import 'package:safe_scales/models/question.dart';
-import 'package:safe_scales/services/user_state_service.dart';
 
 import '../../../providers/course_provider.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/question_widget.dart';
+import '../../widgets/voice_button.dart';
+import '../../../services/tts_service.dart';
 
 class PreQuizScreen extends StatefulWidget {
   final String moduleId;
@@ -30,6 +31,7 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
   int currentQuestionIndex = 0;
   List<List<int>> userAnswers = [];
   bool isStarted = false;
+  final TtsService _ttsService = TtsService();
 
   late DateTime _quizStartTime;
   late DateTime _quizEndTime;
@@ -38,6 +40,31 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
   void initState() {
     super.initState();
     userAnswers = List.generate(widget.questionSet.questions.length, (_) => []);
+    _ttsService.initialize();
+  }
+
+  @override
+  void dispose() {
+    _ttsService.dispose();
+    super.dispose();
+  }
+
+  String _buildQuestionTextForTTS(int questionIndex) {
+    final question = widget.questionSet.questions[questionIndex];
+    final buffer = StringBuffer();
+    
+    buffer.write('Question: ${question.questionText}');
+    if (question.text != null && question.text!.isNotEmpty) {
+      buffer.write('. ${question.text}');
+    }
+    buffer.write('. Options: ');
+    
+    for (int i = 0; i < question.options.length; i++) {
+      final letter = String.fromCharCode(65 + i); // A, B, C, D...
+      buffer.write('$letter) ${question.options[i]}. ');
+    }
+    
+    return buffer.toString();
   }
 
   void _startPreQuiz() {
@@ -122,6 +149,7 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
   }
 
   void _nextQuestion() {
+    _ttsService.stop(); // Stop TTS when changing questions
     if (currentQuestionIndex < widget.questionSet.questions.length - 1) {
       setState(() {
         currentQuestionIndex++;
@@ -132,6 +160,7 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
   }
 
   void _previousQuestion() {
+    _ttsService.stop(); // Stop TTS when changing questions
     if (currentQuestionIndex > 0) {
       setState(() {
         currentQuestionIndex--;
@@ -275,17 +304,39 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-              child: QuestionWidget(
-                question: widget.questionSet.questions[currentQuestionIndex],
-                selectedAnswers: userAnswers[currentQuestionIndex],
-                onAnswerChanged: (answers) {
-                  setState(() {
-                    userAnswers[currentQuestionIndex] = answers;
-                  });
-                },
-                showCorrectAnswer: widget.questionSet.showCorrectAnswers,
-                showExplanation: widget.questionSet.showExplanations,
-                isResponseLocked: false,
+              child: Column(
+                children: [
+                  // Voice button for read aloud
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: VoiceButton(
+                      text: _buildQuestionTextForTTS(currentQuestionIndex),
+                      pageIndex: currentQuestionIndex,
+                      size: 35,
+                      onStateChanged: () {
+                        setState(() {
+                          // Trigger rebuild to update UI state
+                        });
+                      },
+                      margin: EdgeInsets.zero,
+                    ),
+                  ),
+                  // Question widget
+                  Expanded(
+                    child: QuestionWidget(
+                      question: widget.questionSet.questions[currentQuestionIndex],
+                      selectedAnswers: userAnswers[currentQuestionIndex],
+                      onAnswerChanged: (answers) {
+                        setState(() {
+                          userAnswers[currentQuestionIndex] = answers;
+                        });
+                      },
+                      showCorrectAnswer: widget.questionSet.showCorrectAnswers,
+                      showExplanation: widget.questionSet.showExplanations,
+                      isResponseLocked: false,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

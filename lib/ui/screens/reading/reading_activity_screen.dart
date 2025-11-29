@@ -9,9 +9,11 @@ import 'package:safe_scales/ui/screens/reading/reading_results_screen.dart';
 
 import '../../../models/lesson.dart';
 import '../../../providers/course_provider.dart';
+import '../../../providers/theme_provider.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/styled_markdown.dart';
 import '../../widgets/voice_button.dart';
+import '../../widgets/reading_font_adjustment_dialog.dart';
 import '../../../services/tts_service.dart';
 
 class ReadingActivityScreen extends StatefulWidget {
@@ -26,8 +28,10 @@ class ReadingActivityScreen extends StatefulWidget {
 class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
   final PageController _pageController = PageController(initialPage: 0);
   final TtsService _ttsService = TtsService();
+  final Map<int, ScrollController> _scrollControllers = {};
+  final Map<int, bool> _canScrollDown = {};
+  final Map<int, bool> _canScrollUp = {};
 
-  List<Map<String, dynamic>> _slides = [];
   List<ReadingSlide> _readingSlides = [];
   int _currentSlideIndex = 0;
   bool _isLoading = true;
@@ -50,21 +54,60 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
   void dispose() {
     _ttsService.dispose();
     _pageController.dispose();
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    _scrollControllers.clear();
     super.dispose();
+  }
+
+  ScrollController _getScrollController(int index) {
+    if (!_scrollControllers.containsKey(index)) {
+      final controller = ScrollController();
+      controller.addListener(() {
+        if (mounted && _currentSlideIndex == index) {
+          final canScrollDown = controller.position.pixels <
+              controller.position.maxScrollExtent - 10;
+          final canScrollUp = controller.position.pixels > 10;
+          setState(() {
+            _canScrollDown[index] = canScrollDown;
+            _canScrollUp[index] = canScrollUp;
+          });
+        }
+      });
+      _scrollControllers[index] = controller;
+      // Initialize scroll state
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && controller.hasClients) {
+          final canScrollDown = controller.position.pixels <
+              controller.position.maxScrollExtent - 10;
+          final canScrollUp = controller.position.pixels > 10;
+          setState(() {
+            _canScrollDown[index] = canScrollDown;
+            _canScrollUp[index] = canScrollUp;
+          });
+        }
+      });
+    }
+    return _scrollControllers[index]!;
   }
 
   Future<void> _loadReading() async {
     try {
-      CourseProvider courseProvider = Provider.of<CourseProvider>(context, listen: false);
+      CourseProvider courseProvider = Provider.of<CourseProvider>(
+        context,
+        listen: false,
+      );
 
       // Get Lesson
       Lesson? lesson = courseProvider.getLesson(widget.moduleId);
-      LessonProgress? lessonProgress = courseProvider.getLessonProgress(widget.moduleId);
+      LessonProgress? lessonProgress = courseProvider.getLessonProgress(
+        widget.moduleId,
+      );
 
       if (lesson == null || lessonProgress == null) {
         throw Exception("No Lesson Found for ${widget.moduleId}");
-      }
-      else {
+      } else {
         setState(() {
           _readingSlides = lesson.reading;
           _bookmarkedPages = lessonProgress.bookmarks;
@@ -81,12 +124,14 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
 
   Future<void> _saveBookmarks() async {
     try {
-
-      CourseProvider courseProvider = Provider.of<CourseProvider>(context, listen: false);
+      CourseProvider courseProvider = Provider.of<CourseProvider>(
+        context,
+        listen: false,
+      );
 
       courseProvider.saveReadingProgress(
-          lessonId: widget.moduleId,
-          bookmarks: _bookmarkedPages,
+        lessonId: widget.moduleId,
+        bookmarks: _bookmarkedPages,
       );
     } catch (e) {
       print('❌Error saving bookmarks: $e');
@@ -159,7 +204,6 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
       );
 
       // _pageFlipKey.currentState?.previousPage();
-
     }
   }
 
@@ -168,13 +212,32 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
       _ttsService.stop(); // Stop TTS when page is flipped
       _currentSlideIndex = index;
     });
+    // Update scroll indicators for new page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = _scrollControllers[index];
+      if (controller != null && controller.hasClients && mounted) {
+        final canScrollDown = controller.position.pixels <
+            controller.position.maxScrollExtent - 10;
+        final canScrollUp = controller.position.pixels > 10;
+        setState(() {
+          _canScrollDown[index] = canScrollDown;
+          _canScrollUp[index] = canScrollUp;
+        });
+      }
+    });
   }
 
   Container _buildNavigationBar() {
     ThemeData theme = Theme.of(context);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 10,
+        bottom: 10 + bottomPadding,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         boxShadow: [
@@ -228,7 +291,6 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
 
         //TODO: ??? Why not call this here ???
         // _onPageChanged(index); // Don't call this function here, bc the audio stops working if you do,
-
       } else {
         // If PageController is not attached yet, just update the index
         // and close TOC. The PageView will be built with the correct initial page.
@@ -244,7 +306,6 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
       }
 
       // _pageFlipKey.currentState?.goToPage(index);
-
 
       setState(() {
         _showTableOfContents = false;
@@ -267,9 +328,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                 isBookmarked
                     ? FontAwesomeIcons.solidBookmark
                     : FontAwesomeIcons.bookmark,
-                color: isBookmarked
-                    ? Theme.of(context).colorScheme.primary
-                    : null,
+                color:
+                    isBookmarked ? Theme.of(context).colorScheme.primary : null,
               ),
               onPressed: () {
                 _toggleBookmark(index);
@@ -277,12 +337,12 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
             ),
             title: Text(
               'P${index + 1}: ${_readingSlides[index].title ?? 'Page ${index + 1}'}',
-              style: index == _currentSlideIndex
-                  ? Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontSize: 18)
-                  : Theme.of(context).textTheme.bodyMedium,
+              style:
+                  index == _currentSlideIndex
+                      ? Theme.of(
+                        context,
+                      ).textTheme.headlineSmall?.copyWith(fontSize: 18)
+                      : Theme.of(context).textTheme.bodyMedium,
             ),
             onTap: () => _jumpToPage(index),
           );
@@ -295,7 +355,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
     final theme = Theme.of(context);
 
     final headline = _readingSlides[index].title ?? 'Reading Content';
-    final content  = _readingSlides[index].content ?? 'No content for this slide';
+    final content =
+        _readingSlides[index].content ?? 'No content for this slide';
     final fullText = '$headline\n\n$content';
 
     return Column(
@@ -306,9 +367,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-
               // TODO: Should Font adjustment just be for reading material?
-
 
               // Voice button
               VoiceButton(
@@ -329,9 +388,10 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                   _bookmarkedPages.contains(index)
                       ? FontAwesomeIcons.solidBookmark
                       : FontAwesomeIcons.bookmark,
-                  color: _bookmarkedPages.contains(index)
-                      ? theme.colorScheme.primary
-                      : null,
+                  color:
+                      _bookmarkedPages.contains(index)
+                          ? theme.colorScheme.primary
+                          : null,
                 ),
                 onPressed: () {
                   setState(() {
@@ -350,20 +410,107 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
 
         // Scrollable content - wrapped in Expanded
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  headline,
-                  style: theme.textTheme.headlineMedium,
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                controller: _getScrollController(index),
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Consumer<ThemeNotifier>(
+                  builder: (context, themeNotifier, child) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(headline, style: theme.textTheme.headlineMedium),
+                        const SizedBox(height: 20),
+                        StyledMarkdown(
+                          data: content,
+                          fontSizeScale: themeNotifier.readingFontSize,
+                        ),
+                        const SizedBox(height: 30), // Bottom padding for scroll
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(height: 20),
-                StyledMarkdown(data: content),
-                const SizedBox(height: 30), // Bottom padding for scroll
-              ],
-            ),
+              ),
+              // Top scroll indicator
+              if (_canScrollUp[index] ?? false)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          theme.colorScheme.surface,
+                          theme.colorScheme.surface.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.keyboard_arrow_up,
+                            size: 18,
+                            color: theme.colorScheme.outline,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            "Scroll up",
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              // Bottom scroll indicator
+              if (_canScrollDown[index] ?? false)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          theme.colorScheme.surface,
+                          theme.colorScheme.surface.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 18,
+                            color: theme.colorScheme.outline,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            "Scroll for more",
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
@@ -394,6 +541,16 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
           centerTitle: true,
           actions: [
             IconButton(
+              icon: Icon(Icons.format_size),
+              iconSize: 25,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const ReadingFontAdjustmentDialog(),
+                );
+              },
+            ),
+            IconButton(
               icon: Icon(
                 _showTableOfContents ? Icons.close : FontAwesomeIcons.list,
               ),
@@ -406,45 +563,45 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
             ),
           ],
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _readingSlides.isEmpty
-            ? Center(
-          child: Text(
-            'No reading content available',
-            style: theme.textTheme.labelMedium,
-          ),
-        )
-            : Column(
-          children: [
-            // Progress bar
-            ProgressBar(
-              progress: progress,
-              currentSlideIndex: _currentSlideIndex,
-              slideLength: _readingSlides.length,
-              slideName: 'page',
-            ),
+        body:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _readingSlides.isEmpty
+                ? Center(
+                  child: Text(
+                    'No reading content available',
+                    style: theme.textTheme.labelMedium,
+                  ),
+                )
+                : Column(
+                  children: [
+                    // Progress bar
+                    ProgressBar(
+                      progress: progress,
+                      currentSlideIndex: _currentSlideIndex,
+                      slideLength: _readingSlides.length,
+                      slideName: 'page',
+                    ),
 
-            // Main content
-            Expanded(
-              child: _showTableOfContents
-                  ? _buildTableOfContents()
-                  : PageView.builder(
-                controller: _pageController,
-                onPageChanged: _onPageChanged,
-                itemCount: _readingSlides.length,
-                itemBuilder: (context, index) {
-                  return _buildPageContentFor(index);
-                },
-              ),
-            ),
+                    // Main content
+                    Expanded(
+                      child:
+                          _showTableOfContents
+                              ? _buildTableOfContents()
+                              : PageView.builder(
+                                controller: _pageController,
+                                onPageChanged: _onPageChanged,
+                                itemCount: _readingSlides.length,
+                                itemBuilder: (context, index) {
+                                  return _buildPageContentFor(index);
+                                },
+                              ),
+                    ),
 
-            // Navigation controls
-            _buildNavigationBar(),
-
-            SizedBox(height: 15),
-          ],
-        ),
+                    // Navigation controls
+                    _buildNavigationBar(),
+                  ],
+                ),
       ),
     );
   }

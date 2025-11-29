@@ -482,15 +482,30 @@ class _LessonScreenState extends State<LessonScreen> {
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const CircularProgressIndicator(),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Updating progress...',
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodyLarge,
+                                      // Title and close button row
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              'Updating progress...',
+                                              style:
+                                                  Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyLarge,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.close),
+                                            onPressed: () => Navigator.of(context).pop(),
+                                            padding: EdgeInsets.zero,
+                                            constraints: BoxConstraints(),
+                                          ),
+                                        ],
                                       ),
+                                      const SizedBox(height: 16),
+                                      const CircularProgressIndicator(),
                                     ],
                                   ),
                                 ),
@@ -797,12 +812,27 @@ class _LessonScreenState extends State<LessonScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Updating progress...',
-                        style: Theme.of(context).textTheme.bodyLarge,
+                      // Title and close button row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Updating progress...',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 16),
+                      const CircularProgressIndicator(),
                     ],
                   ),
                 ),
@@ -970,12 +1000,27 @@ class _LessonScreenState extends State<LessonScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Updating progress...',
-                        style: Theme.of(context).textTheme.bodyLarge,
+                      // Title and close button row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Updating progress...',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                            padding: EdgeInsets.zero,
+                            constraints: BoxConstraints(),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 16),
+                      const CircularProgressIndicator(),
                     ],
                   ),
                 ),

@@ -122,22 +122,24 @@ class _MainNavigationState extends State<MainNavigation> {
         onLogout: _handleLogout,
       ),
       body: _pages[_selectedIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: barColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          decoration: BoxDecoration(
+            color: barColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
-          ],
-        ),
-        child: BottomNavigationBar(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: (index) {
             setState(() {
@@ -174,6 +176,7 @@ class _MainNavigationState extends State<MainNavigation> {
             //   label: 'Dev',
             // ),
           ],
+        ),
         ),
       ),
     );

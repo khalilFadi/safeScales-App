@@ -88,7 +88,7 @@ class _ShopScreenState extends State<ShopScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             duration: Duration(seconds: 2),
-            content: Text('Review set not completed. Purchase cancelled.'),
+            content: Text('Review set not completed. Unlock cancelled.'),
           ),
         );
         setState(() {
@@ -267,7 +267,7 @@ class _ShopScreenState extends State<ShopScreen> {
                             child: ElevatedButton(
                               onPressed: _handlePurchase,
                               child: Text(
-                                'PURCHASE'.toUpperCase(),
+                                'UNLOCK'.toUpperCase(),
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: Colors.white,
                                 ),
@@ -291,7 +291,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         width: 320,
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: theme.colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
@@ -305,11 +305,26 @@ class _ShopScreenState extends State<ShopScreen> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Select a lesson to review',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontSize: 18 * AppTheme.fontSizeScale,
-                              ),
+                            // Title and close button row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Select a lesson to review',
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      fontSize: 18 * AppTheme.fontSizeScale,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () => setState(() => showLessonDialog = false),
+                                  padding: EdgeInsets.zero,
+                                  constraints: BoxConstraints(),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 18),
                             ConstrainedBox(
@@ -551,7 +566,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   ? selectionColor.withValues(
                     alpha: 0.12,
                   )
-                  : Colors.grey[100],
+                  : theme.colorScheme.surfaceDim,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color:

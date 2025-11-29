@@ -74,11 +74,17 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final double dragonSize = MediaQuery.of(context).size.width * 0.75;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final double dragonSize = screenWidth * 0.75;
 
+    // Ensure environment size doesn't exceed screen bounds
+    final environmentWidth = (dragonSize * 1.25).clamp(0.0, screenWidth * 0.95);
+    final environmentHeight = (dragonSize * 1.8).clamp(0.0, screenHeight * 0.6);
+    
     final environmentSize = (
-      width: dragonSize * 1.25,
-      height: dragonSize * 1.8,
+      width: environmentWidth,
+      height: environmentHeight,
     );
 
     final stickerEnvironmentSize = (
@@ -136,10 +142,15 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
               onTap: () => _showNameDialog(dragonProvider),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    dragonProvider.getDragonById(widget.dragonId)?.name ??
-                        'Unnamed Dragon',
+                  Flexible(
+                    child: Text(
+                      dragonProvider.getDragonById(widget.dragonId)?.name ??
+                          'Unnamed Dragon',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
                   const SizedBox(width: 15),
                   const Icon(Icons.edit, size: 25),
@@ -153,21 +164,10 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, size: 35),
                 onSelected: (value) {
-                  if (value == 'phase') _showPhaseDialog();
-                  if (value == 'env') _showEnvironmentDialog();
                   if (value == 'clear') _clearAllStickers();
                 },
                 itemBuilder:
                     (context) => [
-                      PopupMenuItem(
-                        value: 'phase',
-                        child: Text('Select Dragon Phase'),
-                      ),
-                      PopupMenuItem(
-                        value: 'env',
-                        child: Text('Select Environment'),
-                      ),
-                      PopupMenuDivider(),
                       PopupMenuItem(
                         value: 'clear',
                         child: Text('Clear All Items'),
@@ -190,8 +190,107 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                     ),
                     SizedBox(height: 10),
                     Text(
+                      'Use buttons to resize or change layer',
+                      style: theme.textTheme.labelSmall,
+                    ),
+                    SizedBox(height: 10),
+                    Text(
                       'Long press an item to remove it',
                       style: theme.textTheme.labelSmall,
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Prominent selection buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _showPhaseDialog(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: colorScheme.primary.withValues(alpha: 0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.pets,
+                                size: 20,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'Dragon Phase',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _showEnvironmentDialog(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: dragonDecorationProvider.getCurrentEnvironment() != null
+                                ? colorScheme.primaryContainer
+                                : colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: dragonDecorationProvider.getCurrentEnvironment() != null
+                                  ? colorScheme.primary.withValues(alpha: 0.3)
+                                  : colorScheme.outline.withValues(alpha: 0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.landscape,
+                                size: 20,
+                                color: dragonDecorationProvider.getCurrentEnvironment() != null
+                                    ? colorScheme.onPrimaryContainer
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  _getEnvironmentDisplayName(dragonDecorationProvider),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: dragonDecorationProvider.getCurrentEnvironment() != null
+                                        ? colorScheme.onPrimaryContainer
+                                        : colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -222,12 +321,22 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                           ),
                         ),
 
-                      // Dragon Image
-                      DragonImageWidget(
-                        dragonId: widget.dragonId,
-                        size: dragonSize * 0.75,
-                        phase: selectedPhase,
-                      ),
+                      // Stickers behind the dragon
+                      ...dragonDecorationProvider.placedStickers
+                          .where((sticker) => sticker.isBehindDragon)
+                          .map((sticker) {
+                            final isSelected =
+                                dragonDecorationProvider
+                                    .selectedStickerId ==
+                                sticker.id;
+
+                            return _buildSticker(
+                              sticker,
+                              isSelected,
+                              stickerEnvironmentSize,
+                              dragonDecorationProvider,
+                            );
+                          }),
 
                       // Drop zone for dragon
                       DragTarget<Map<String, dynamic>>(
@@ -258,28 +367,6 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                                   width: candidateData.isNotEmpty ? 3 : 2,
                                 ),
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Stack(
-                                  children: [
-                                    // Placed stickers from provider
-                                    ...dragonDecorationProvider.placedStickers
-                                        .map((sticker) {
-                                          final isSelected =
-                                              dragonDecorationProvider
-                                                  .selectedStickerId ==
-                                              sticker.id;
-
-                                          return _buildSticker(
-                                            sticker,
-                                            isSelected,
-                                            stickerEnvironmentSize,
-                                            dragonDecorationProvider,
-                                          );
-                                        }),
-                                  ],
-                                ),
-                              ),
                             ),
                           );
                         },
@@ -292,6 +379,30 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                           );
                         },
                       ),
+
+                      // Dragon Image
+                      DragonImageWidget(
+                        dragonId: widget.dragonId,
+                        size: dragonSize * 0.75,
+                        phase: selectedPhase,
+                      ),
+
+                      // Stickers in front of the dragon
+                      ...dragonDecorationProvider.placedStickers
+                          .where((sticker) => !sticker.isBehindDragon)
+                          .map((sticker) {
+                            final isSelected =
+                                dragonDecorationProvider
+                                    .selectedStickerId ==
+                                sticker.id;
+
+                            return _buildSticker(
+                              sticker,
+                              isSelected,
+                              stickerEnvironmentSize,
+                              dragonDecorationProvider,
+                            );
+                          }),
                     ],
                   ),
                 ),
@@ -326,6 +437,8 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
 
   void _showPhaseDialog() async {
     final dragonProvider = Provider.of<DragonProvider>(context, listen: false);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     final availablePhases =
         dragonProvider.unlockedDragonPhases[widget.dragonId];
@@ -335,25 +448,118 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
 
     int? choice = await showDialog<int>(
       context: context,
-      builder:
-          (context) => SimpleDialog(
-            title: const Text('Select Dragon Phase'),
-            children: List.generate(
-              availablePhases.length,
-              (i) => SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, i),
-                child: Text(
-                  dragonProvider.getPhaseDisplayName(availablePhases[i]),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        backgroundColor: colorScheme.surface,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 400, maxHeight: 500),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.pets,
+                    color: colorScheme.primary,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Select Dragon Phase',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: List.generate(
+                      availablePhases.length,
+                      (i) {
+                        final isSelected = availablePhases[i] == selectedPhase;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primaryContainer
+                                : colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => Navigator.pop(context, i),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 16,
+                                ),
+                                child: Row(
+                                  children: [
+                                    if (isSelected)
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: colorScheme.primary,
+                                        size: 24,
+                                      )
+                                    else
+                                      Icon(
+                                        Icons.circle_outlined,
+                                        color: colorScheme.onSurfaceVariant,
+                                        size: 24,
+                                      ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        dragonProvider.getPhaseDisplayName(
+                                          availablePhases[i],
+                                        ),
+                                        style: theme.textTheme.bodyLarge?.copyWith(
+                                          color: isSelected
+                                              ? colorScheme.onPrimaryContainer
+                                              : colorScheme.onSurface,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
+        ),
+      ),
     );
 
     if (choice != null && choice < availablePhases.length) {
       setState(() => selectedPhase = availablePhases[choice]);
-      // Note: For now, we're just updating the UI.
-      // When you implement user preference saving, you would call:
       await dragonProvider.updateUserPreferredPhase(
         widget.dragonId,
         availablePhases[choice],
@@ -366,6 +572,8 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
       context,
       listen: false,
     );
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (decorationProvider.isLoadingEnvironments) {
       ScaffoldMessenger.of(
@@ -374,13 +582,180 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
       return;
     }
 
+    final currentEnv = decorationProvider.getCurrentEnvironment();
+    final currentEnvId = currentEnv?.id ?? '';
+
     int? choice = await showDialog<int>(
       context: context,
-      builder:
-          (context) => SimpleDialog(
-            title: const Text('Select Environment'),
-            children: _buildEnvironmentList(decorationProvider),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        backgroundColor: colorScheme.surface,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 400, maxHeight: 500),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.landscape,
+                    color: colorScheme.primary,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Select Environment',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // None option
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: decorationProvider.isNoEnvironmentSelected
+                              ? colorScheme.primaryContainer
+                              : colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: decorationProvider.isNoEnvironmentSelected
+                                ? colorScheme.primary
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context, -1),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (decorationProvider.isNoEnvironmentSelected)
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: colorScheme.primary,
+                                      size: 24,
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.circle_outlined,
+                                      color: colorScheme.onSurfaceVariant,
+                                      size: 24,
+                                    ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      'None',
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: decorationProvider.isNoEnvironmentSelected
+                                            ? colorScheme.onPrimaryContainer
+                                            : colorScheme.onSurface,
+                                        fontWeight: decorationProvider.isNoEnvironmentSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Environment options
+                      ...List.generate(
+                        decorationProvider.userEnvironments.length,
+                        (i) {
+                          final env = decorationProvider.userEnvironments[i];
+                          final isSelected = env.id == currentEnvId;
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? colorScheme.primaryContainer
+                                  : colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected
+                                    ? colorScheme.primary
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => Navigator.pop(context, i),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 16,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      if (isSelected)
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: colorScheme.primary,
+                                          size: 24,
+                                        )
+                                      else
+                                        Icon(
+                                          Icons.circle_outlined,
+                                          color: colorScheme.onSurfaceVariant,
+                                          size: 24,
+                                        ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Text(
+                                          env.name,
+                                          style: theme.textTheme.bodyLarge?.copyWith(
+                                            color: isSelected
+                                                ? colorScheme.onPrimaryContainer
+                                                : colorScheme.onSurface,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
     );
 
     if (choice != null) {
@@ -397,29 +772,6 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
         await decorationProvider.saveEnvironmentSelection(widget.dragonId, "");
       }
     }
-  }
-
-  List<Widget> _buildEnvironmentList(
-    DragonDecorationProvider decorationProvider,
-  ) {
-    List<Widget> envOptions = [
-      SimpleDialogOption(
-        onPressed: () => Navigator.pop(context, -1),
-        child: Text('None'),
-      ),
-    ];
-
-    envOptions.addAll(
-      List.generate(
-        decorationProvider.userEnvironments.length,
-        (i) => SimpleDialogOption(
-          onPressed: () => Navigator.pop(context, i),
-          child: Text(decorationProvider.userEnvironments[i].name),
-        ),
-      ),
-    );
-
-    return envOptions;
   }
 
   Positioned _buildSticker(
@@ -477,7 +829,8 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                 ),
               ),
             ),
-            if (isSelected)
+            if (isSelected) ...[
+              // Resize handle (bottom-right)
               Positioned(
                 right: -8,
                 bottom: -8,
@@ -488,14 +841,46 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                     provider.updateStickerSize(sticker.id, newSize);
                   },
                   child: Container(
-                    width: 25,
-                    height: 25,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.open_with,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 24,
                     ),
                   ),
                 ),
               ),
+              // Layer toggle button (top-left)
+              Positioned(
+                left: -8,
+                top: -8,
+                child: GestureDetector(
+                  onTap: () {
+                    provider.toggleStickerLayer(sticker.id);
+                  },
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      sticker.isBehindDragon
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

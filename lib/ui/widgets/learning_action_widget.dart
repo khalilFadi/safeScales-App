@@ -52,7 +52,9 @@ class LearningActionWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  actionType == ActionType.continueLearning ? 'Continue Learning'.toTitleCase() : 'Time to Review'.toTitleCase(),
+                  actionType == ActionType.continueLearning 
+                      ? (progress == 0.0 ? 'Start Learning'.toTitleCase() : 'Continue Learning'.toTitleCase())
+                      : 'Time to Review'.toTitleCase(),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                   ),

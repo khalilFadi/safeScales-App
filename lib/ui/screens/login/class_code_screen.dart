@@ -293,6 +293,7 @@ class _ClassCodeScreenState extends State<ClassCodeScreen> {
                             const SizedBox(height: 25),
                             TextFormField(
                               controller: _classCodeController,
+                              keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 labelText: 'Class Code',
                                 prefixIcon: Icon(
