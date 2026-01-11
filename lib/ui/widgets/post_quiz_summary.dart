@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safe_scales/models/question.dart';
 import 'package:safe_scales/themes/app_theme.dart';
+import 'styled_markdown.dart';
 
 class PostQuizSummary extends StatefulWidget {
   final QuestionSet questionSet;
@@ -101,26 +102,22 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
                 )
               ),
               const SizedBox(height: 10),
-              Text(
-                  question.questionText,
-                  style: theme.textTheme.bodyMedium
+              StyledMarkdown(
+                data: question.questionText,
+                fontSizeScale: AppTheme.fontSizeScale,
               ),
               const SizedBox(height: 10),
 
               if (isMissed) ... [
-                Text(
-                  'Your Answer: ${getUserAnswerText(question, userAnswer)}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.red
-                  ),
+                StyledMarkdown(
+                  data: 'Your Answer: ${getUserAnswerText(question, userAnswer)}',
+                  fontSizeScale: AppTheme.fontSizeScale,
                 ),
                 const SizedBox(height: 5),
               ],
-              Text(
-                'Correct Answer: ${question.correctAnswerIndices.map((index) => question.options[index]).join(', ')}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.green
-                ),
+              StyledMarkdown(
+                data: 'Correct Answer: ${question.correctAnswerIndices.map((index) => question.options[index]).join(', ')}',
+                fontSizeScale: AppTheme.fontSizeScale,
               ),
 
               const SizedBox(height: 5),
@@ -143,9 +140,9 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
                         ),
                       ),
                       SizedBox(height: 5),
-                      Text(
-                        question.explanation,
-                        style: theme.textTheme.bodySmall,
+                      StyledMarkdown(
+                        data: question.explanation,
+                        fontSizeScale: AppTheme.fontSizeScale,
                       ),
                     ],
                   ),

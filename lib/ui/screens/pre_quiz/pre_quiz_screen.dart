@@ -168,44 +168,51 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
     }
   }
 
-  Container _buildNavigationBar() {
+  Widget _buildNavigationBar() {
     ThemeData theme = Theme.of(context);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          TextButton.icon(
-            onPressed: currentQuestionIndex > 0 ? _previousQuestion : null,
-            icon: const Icon(Icons.arrow_back_ios_rounded),
-            label: const Text('Previous'),
-          ),
-
-          TextButton.icon(
-            iconAlignment: IconAlignment.end,
-            onPressed:
-                userAnswers[currentQuestionIndex].isNotEmpty
-                    ? _nextQuestion
-                    : null,
-            label: Text(
-              currentQuestionIndex == widget.questionSet.questions.length - 1
-                  ? 'Complete'
-                  : 'Next',
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, -2),
             ),
-            icon: Icon(Icons.arrow_forward_ios_rounded),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                onPressed: currentQuestionIndex > 0 ? _previousQuestion : null,
+                icon: const Icon(Icons.arrow_back_ios_rounded),
+                label: const Text('Previous'),
+              ),
+
+              TextButton.icon(
+                iconAlignment: IconAlignment.end,
+                onPressed:
+                    userAnswers[currentQuestionIndex].isNotEmpty
+                        ? _nextQuestion
+                        : null,
+                label: Text(
+                  currentQuestionIndex == widget.questionSet.questions.length - 1
+                      ? 'Complete'
+                      : 'Next',
+                ),
+                icon: Icon(Icons.arrow_forward_ios_rounded),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -342,8 +349,6 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
           ),
 
           _buildNavigationBar(),
-
-          SizedBox(height: 15),
         ],
       ),
     );
