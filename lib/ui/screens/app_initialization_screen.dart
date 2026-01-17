@@ -103,6 +103,35 @@ class _AppInitializationScreenState extends State<AppInitializationScreen> {
 
     } catch (e) {
       print('❌ App initialization failed: $e');
+      
+      // Check if the error is due to a deleted class
+      final errorString = e.toString();
+      if (errorString.contains('DeletedClassException') || 
+          errorString.contains('deleted') ||
+          (errorString.contains('PGRST116') && errorString.contains('0 rows'))) {
+        // Class was deleted - clear user session and redirect to class selection
+        print('⚠️ User\'s class was deleted, clearing session and redirecting...');
+        
+        final userState = UserStateService();
+        await userState.clearUserSession();
+        userState.setUser(null);
+        
+        if (mounted) {
+          setState(() {
+            _isInitializing = false;
+            _errorMessage = 'The class you were enrolled in has been deleted. Please join a new class.';
+          });
+          
+          // Show a dialog or navigate after a short delay
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              _navigateToSelection();
+            }
+          });
+        }
+        return;
+      }
+      
       setState(() {
         _isInitializing = false;
         _errorMessage = 'Failed to load app data: ${e.toString()}';

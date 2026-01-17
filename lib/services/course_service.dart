@@ -56,6 +56,10 @@ class CourseService {
         lessonOrder: lessonOrder,
       );
     } catch (e) {
+      // Re-throw DeletedClassException as-is so it can be handled upstream
+      if (e is DeletedClassException) {
+        rethrow;
+      }
       throw CourseServiceException('Failed to load course data: $e');
     }
   }
