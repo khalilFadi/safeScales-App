@@ -69,55 +69,6 @@ class SettingsDrawer extends StatelessWidget {
                   ),
                   Divider(height: 32, color: colorScheme.outlineVariant),
 
-                  // Font size control
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Font Size',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-
-                        Row(
-                          children: [
-                            Text(
-                              'A',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                value: themeNotifier.fontSize,
-                                min: 0.8,
-                                max: 1.4,
-                                divisions: 6,
-                                onChanged: (value) {
-                                  AppTheme.setFontSizeScale(value);
-                                  themeNotifier.updateFontSize(value);
-                                },
-                                activeColor: colorScheme.primary,
-                              ),
-                            ),
-                            Text(
-                              'A',
-                              style: TextStyle(
-                                fontSize: 28,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
                   // Color mode toggle
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
