@@ -578,7 +578,7 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
     if (decorationProvider.isLoadingEnvironments) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Loading environments...')));
+      ).showSnackBar(SnackBar(content: Text('Loading habitats...')));
       return;
     }
 
@@ -609,7 +609,7 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Select Environment',
+                      'Select Habitat',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,

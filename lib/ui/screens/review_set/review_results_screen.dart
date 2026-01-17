@@ -111,7 +111,7 @@ class _ReviewResultsScreen extends State<ReviewResultsScreen> {
               ),
               child: Center(
                 child: Text(
-                  'ENVIRONMENTS (${shopProvider.availableEnvironments.length})'.toUpperCase(),
+                  'HABITATS (${shopProvider.availableEnvironments.length})'.toUpperCase(),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color:
                     !isItemsTabSelected ? selectedText : unselectedText,
@@ -218,7 +218,7 @@ class _ReviewResultsScreen extends State<ReviewResultsScreen> {
             SizedBox(height: 15),
 
             Text(
-              'Pick a item or environment you\'d like to add to your collection',
+              'Pick a item or habitat you\'d like to add to your collection',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium,
             ),

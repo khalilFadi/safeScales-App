@@ -224,7 +224,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           // Subtitle
                           Expanded(
                             child: Text(
-                              'Earn new items and environments for your dragons by completing review sets from finished lessons.',
+                              'Earn new items and habitats for your dragons by completing review sets from finished lessons.',
                               style: theme.textTheme.labelMedium,
                             ),
                           ),
@@ -462,7 +462,7 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
               child: Center(
                 child: Text(
-                  'ENVIRONMENTS (${shopProvider.availableEnvironments.length})'.toUpperCase(),
+                  'HABITATS (${shopProvider.availableEnvironments.length})'.toUpperCase(),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color:
                     !isItemsTabSelected ? selectedText : unselectedText,

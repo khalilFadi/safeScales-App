@@ -76,7 +76,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'This is your current collection of\nitems and environments',
+                          'This is your current collection of\nitems and habitats',
                           style: theme.textTheme.labelMedium,
                         ),
                       ),
@@ -137,7 +137,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                'ENVIRONMENTS (${itemProvider.environments.length})',
+                                'HABITATS (${itemProvider.environments.length})',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: selectedTab == 1
                                       ? selectedText
@@ -221,7 +221,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              selectedTab == 0 ? 'No accessories yet' : 'No environments yet',
+              selectedTab == 0 ? 'No accessories yet' : 'No habitats yet',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -229,8 +229,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
             const SizedBox(height: 10),
             Text(
               selectedTab == 0
-                  ? 'Complete reviews set from the shop page to earn items and environments'
-                  : 'Complete lessons and quizzes to\nunlock beautiful environments!',
+                  ? 'Complete reviews set from the shop page to earn items and habitats'
+                  : 'Complete lessons and quizzes to\nunlock beautiful habitats!',
               style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -263,7 +263,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
               name: item.name,
               onTap: () {
                 // Handle item tap
-                _showItemDetails(context, item, selectedTab == 0 ? 'accessory' : 'environment');
+                _showItemDetails(context, item, selectedTab == 0 ? 'accessory' : 'habitat');
               },
             ),
         ],
