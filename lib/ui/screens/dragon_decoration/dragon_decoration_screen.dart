@@ -1,6 +1,7 @@
 // --- Dragon Dress Up Page ---
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:safe_scales/providers/dragon_decoration_provider.dart';
 import 'package:safe_scales/ui/widgets/dragon_image_widget.dart';
 import 'package:safe_scales/ui/widgets/sticker_collection_widget.dart';
@@ -228,7 +229,7 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.pets,
+                                FontAwesomeIcons.dragon,
                                 size: 20,
                                 color: theme.brightness == Brightness.light
                                     ? colorScheme.primary
@@ -459,9 +460,20 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final availablePhases =
+    final unlockedPhases =
         dragonProvider.unlockedDragonPhases[widget.dragonId];
-    if (availablePhases == null) {
+    if (unlockedPhases == null) {
+      return;
+    }
+
+    // Get all phases from the dragon
+    final dragon = dragonProvider.getDragonById(widget.dragonId);
+    if (dragon == null) {
+      return;
+    }
+
+    final allPhases = dragon.phaseOrder;
+    if (allPhases.isEmpty) {
       return;
     }
 
@@ -482,7 +494,7 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
               Row(
                 children: [
                   Icon(
-                    Icons.pets,
+                    FontAwesomeIcons.dragon,
                     color: colorScheme.primary,
                     size: 28,
                   ),
@@ -503,15 +515,25 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: List.generate(
-                      availablePhases.length,
+                      allPhases.length,
                       (i) {
-                        final isSelected = availablePhases[i] == selectedPhase;
+                        final phase = allPhases[i];
+                        final isUnlocked = dragonProvider.hasPhase(
+                          widget.dragonId,
+                          phase,
+                        );
+                        final isSelected = phase == selectedPhase;
+                        final isLocked = !isUnlocked;
+
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? colorScheme.primaryContainer
-                                : colorScheme.surfaceContainerHighest,
+                                : isLocked
+                                    ? colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.5)
+                                    : colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected
@@ -523,44 +545,59 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              onTap: () => Navigator.pop(context, i),
+                              onTap: isLocked
+                                  ? null
+                                  : () => Navigator.pop(context, i),
                               borderRadius: BorderRadius.circular(16),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 16,
-                                ),
-                                child: Row(
-                                  children: [
-                                    if (isSelected)
-                                      Icon(
-                                        Icons.check_circle,
-                                        color: colorScheme.primary,
-                                        size: 24,
-                                      )
-                                    else
-                                      Icon(
-                                        Icons.circle_outlined,
-                                        color: colorScheme.onSurfaceVariant,
-                                        size: 24,
-                                      ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Text(
-                                        dragonProvider.getPhaseDisplayName(
-                                          availablePhases[i],
+                              child: Opacity(
+                                opacity: isLocked ? 0.6 : 1.0,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 16,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      if (isSelected && !isLocked)
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: colorScheme.primary,
+                                          size: 24,
+                                        )
+                                      else if (isLocked)
+                                        Icon(
+                                          Icons.lock,
+                                          color: colorScheme.onSurfaceVariant
+                                              .withValues(alpha: 0.5),
+                                          size: 24,
+                                        )
+                                      else
+                                        Icon(
+                                          Icons.circle_outlined,
+                                          color: colorScheme.onSurfaceVariant,
+                                          size: 24,
                                         ),
-                                        style: theme.textTheme.bodyLarge?.copyWith(
-                                          color: isSelected
-                                              ? colorScheme.onPrimaryContainer
-                                              : colorScheme.onSurface,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.normal,
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Text(
+                                          dragonProvider.getPhaseDisplayName(
+                                            phase,
+                                          ),
+                                          style: theme.textTheme.bodyLarge?.copyWith(
+                                            color: isSelected
+                                                ? colorScheme.onPrimaryContainer
+                                                : isLocked
+                                                    ? colorScheme.onSurface
+                                                        .withValues(alpha: 0.5)
+                                                    : colorScheme.onSurface,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.normal,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -577,12 +614,16 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
       ),
     );
 
-    if (choice != null && choice < availablePhases.length) {
-      setState(() => selectedPhase = availablePhases[choice]);
-      await dragonProvider.updateUserPreferredPhase(
-        widget.dragonId,
-        availablePhases[choice],
-      );
+    if (choice != null && choice < allPhases.length) {
+      final selectedPhaseValue = allPhases[choice];
+      // Only allow selection if the phase is unlocked
+      if (dragonProvider.hasPhase(widget.dragonId, selectedPhaseValue)) {
+        setState(() => selectedPhase = selectedPhaseValue);
+        await dragonProvider.updateUserPreferredPhase(
+          widget.dragonId,
+          selectedPhaseValue,
+        );
+      }
     }
   }
 

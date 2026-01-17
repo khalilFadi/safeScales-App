@@ -312,19 +312,22 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
   }
 
   Widget _buildTableOfContents() {
+    final theme = Theme.of(context);
     return Container(
       padding: EdgeInsets.all(30),
-      color: Theme.of(context).colorScheme.surface,
+      color: theme.colorScheme.surface,
       child: ListView.builder(
         itemCount: widget.questionSet.questions.length,
         itemBuilder: (context, index) {
-          // final isBookmarked = _bookmarkedPages.contains(index);
+          final isAnswered = userAnswers[index].isNotEmpty;
           return ListTile(
             leading: Icon(
-              userAnswers[index].isNotEmpty
+              isAnswered
                   ? FontAwesomeIcons.solidCircleCheck
                   : FontAwesomeIcons.circle,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: isAnswered
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline,
             ),
             title: Text(
               'Q${index + 1}: ${widget.questionSet.questions[index].questionText}',
