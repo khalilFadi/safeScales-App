@@ -1081,17 +1081,17 @@ class AppTheme {
 
       headlineLarge: GoogleFonts.poppins(
         color: colorScheme.onSurface,
-        fontSize: 30, // * _fontSizeScale,
+        fontSize: 24, // * _fontSizeScale,
         fontWeight: FontWeight.bold,
       ),
       headlineMedium: GoogleFonts.poppins(
         color: colorScheme.onSurface,
-        fontSize: 25, // * _fontSizeScale,
+        fontSize: 20, // * _fontSizeScale,
         fontWeight: FontWeight.bold,
       ),
       headlineSmall: GoogleFonts.poppins(
         color: colorScheme.onSurface,
-        fontSize: 22, // * _fontSizeScale,
+        fontSize: 18, // * _fontSizeScale,
         fontWeight: FontWeight.bold,
       ),
 
@@ -1149,7 +1149,7 @@ class AppTheme {
         titleSpacing: 25,
         titleTextStyle: TextStyle(
           color: colorScheme.primary,
-          fontSize: 30,
+          fontSize: 24,
           fontWeight: FontWeight.bold,
         ),
         iconTheme: IconThemeData(
@@ -1245,7 +1245,7 @@ class AppTheme {
         titleSpacing: 25,
         titleTextStyle: TextStyle(
           color: colorScheme.onSurface,
-          fontSize: 30 * _fontSizeScale,
+          fontSize: 24 * _fontSizeScale,
           fontWeight: FontWeight.bold,
         ),
         iconTheme: IconThemeData(
