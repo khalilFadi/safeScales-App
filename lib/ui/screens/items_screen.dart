@@ -229,20 +229,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
             const SizedBox(height: 10),
             Text(
               selectedTab == 0
-                  ? 'Complete reviews set from the shop page to earn items and habitats'
-                  : 'Complete lessons and quizzes to\nunlock beautiful habitats!',
+                  ? 'Complete review sets from the shop page to earn items and habitats'
+                  : 'Complete lessons and quizzes to unlock beautiful habitats!',
               style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            if (selectedTab == 1)
-              ElevatedButton(
-                onPressed: () {
-                  // Navigate to lessons or shop
-                  // Navigator.pushNamed(context, '/lessons');
-                },
-                child: const Text('Start Learning'),
-              ),
           ],
         ),
       );
