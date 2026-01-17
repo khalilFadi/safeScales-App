@@ -86,8 +86,9 @@ class DragonService {
   }
 
   /// Check if play mode is unlocked (final phase reached)
+  /// Always returns true - play mode is always unlocked regardless of lesson completion
   bool isPlayUnlocked(List<String> unlockedPhases) {
-    return isPhaseUnlocked(unlockedPhases, 'final');
+    return true;
   }
 
   // === Data Processing ===
