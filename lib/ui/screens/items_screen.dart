@@ -49,8 +49,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
   Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
     final Color selected = primary;
-    final Color unselected = Colors.blue[100]!;
-    final Color selectedText = Colors.white;
+    final Color unselected = theme.colorScheme.surfaceContainerHighest;
+    final Color selectedText = theme.colorScheme.onPrimary;
     final Color unselectedText = primary;
 
     ThemeData theme = Theme.of(context);
@@ -312,10 +312,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   return Container(
                     width: 300,
                     height: 300,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                     child: const Icon(Icons.image_not_supported),
                   );
                 },

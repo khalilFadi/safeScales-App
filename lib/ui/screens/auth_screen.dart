@@ -44,9 +44,9 @@ class _AuthScreenState extends State<AuthScreen> {
           if (!success) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text('Invalid email or password'),
-                  backgroundColor: Colors.red,
+                  backgroundColor: theme.colorScheme.errorContainer,
                 ),
               );
               setState(() {
@@ -77,9 +77,9 @@ class _AuthScreenState extends State<AuthScreen> {
               isLogin = true;
             });
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Account created successfully! Please log in.'),
-                backgroundColor: Colors.green,
+                backgroundColor: theme.colorScheme.secondaryContainer,
               ),
             );
           }
@@ -87,7 +87,7 @@ class _AuthScreenState extends State<AuthScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+            SnackBar(content: Text(e.toString()), backgroundColor: theme.colorScheme.errorContainer),
           );
         }
       } finally {
@@ -138,9 +138,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.arrow_back,
-                            color: Colors.white,
+                            color: theme.colorScheme.onPrimary,
                           ),
                           onPressed: () => Navigator.of(context).pop(),
                         ),

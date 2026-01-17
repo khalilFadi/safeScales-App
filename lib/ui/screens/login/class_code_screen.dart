@@ -86,7 +86,7 @@ class _ClassCodeScreenState extends State<ClassCodeScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Welcome back! Signed in successfully.'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: theme.colorScheme.secondaryContainer,
                 ),
               );
 
@@ -211,7 +211,7 @@ class _ClassCodeScreenState extends State<ClassCodeScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Successfully joined class!'),
-              backgroundColor: Colors.green,
+              backgroundColor: theme.colorScheme.secondaryContainer,
             ),
           );
 
@@ -226,7 +226,7 @@ class _ClassCodeScreenState extends State<ClassCodeScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+            SnackBar(content: Text(e.toString()), backgroundColor: theme.colorScheme.errorContainer),
           );
         }
       } finally {
@@ -264,7 +264,7 @@ class _ClassCodeScreenState extends State<ClassCodeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: Icon(Icons.arrow_back, color: theme.colorScheme.onPrimary),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),

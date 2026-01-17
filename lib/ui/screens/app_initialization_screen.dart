@@ -185,14 +185,14 @@ class _AppInitializationScreenState extends State<AppInitializationScreen> {
                   Icon(
                     Icons.school,
                     size: 80,
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                   ),
                   const SizedBox(height: 32),
 
                   Text(
                     'SafeScales',
                     style: theme.textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
+                      color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -200,15 +200,15 @@ class _AppInitializationScreenState extends State<AppInitializationScreen> {
 
                   if (_isInitializing) ...[
                     // Loading indicator
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
                     ),
                     const SizedBox(height: 24),
 
                     Text(
                       _loadingMessage,
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: Colors.white,
+                        color: theme.colorScheme.onPrimary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -217,7 +217,7 @@ class _AppInitializationScreenState extends State<AppInitializationScreen> {
                     Icon(
                       Icons.error_outline,
                       size: 48,
-                      color: Colors.red[300],
+                      color: theme.colorScheme.errorContainer,
                     ),
                     const SizedBox(height: 16),
 
@@ -240,7 +240,7 @@ class _AppInitializationScreenState extends State<AppInitializationScreen> {
                         TextButton(
                           onPressed: _navigateToSelection,
                           style: TextButton.styleFrom(
-                            foregroundColor: Colors.white,
+                            foregroundColor: theme.colorScheme.onPrimary,
                           ),
                           child: const Text('Back to Login'),
                         ),

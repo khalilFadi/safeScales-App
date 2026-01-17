@@ -56,7 +56,7 @@ class LearningActionWidget extends StatelessWidget {
                       ? (progress == 0.0 ? 'Start Learning'.toTitleCase() : 'Continue Learning'.toTitleCase())
                       : 'Time to Review'.toTitleCase(),
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 ),
 
@@ -65,7 +65,7 @@ class LearningActionWidget extends StatelessWidget {
                 Text(
                   (title).toUpperCase(),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -78,12 +78,12 @@ class LearningActionWidget extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${progress.toStringAsFixed(0)}% Complete'.toTitleCase(),
-                    style: theme.textTheme.labelSmall?.copyWith(color: Colors.white),
+                    style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimary),
                   ),
                 )
                     : SizedBox.shrink(),
@@ -91,7 +91,7 @@ class LearningActionWidget extends StatelessWidget {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.white,
+              color: theme.colorScheme.onPrimary,
               size: 24,
             ),
           ],

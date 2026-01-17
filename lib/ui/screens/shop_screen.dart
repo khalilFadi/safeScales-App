@@ -197,7 +197,7 @@ class _ShopScreenState extends State<ShopScreen> {
     final Color primary = theme.colorScheme.primary;
     final Color selected = primary;
     final Color unselected = theme.colorScheme.lightBlue.withValues(alpha: 0.5,);
-    final Color selectedText = Colors.white;
+    final Color selectedText = theme.colorScheme.onPrimary;
     final Color unselectedText = primary;
     final Color highlight = theme.colorScheme.green.withValues(alpha: 0.25);
 
@@ -269,7 +269,7 @@ class _ShopScreenState extends State<ShopScreen> {
                               child: Text(
                                 'UNLOCK'.toUpperCase(),
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white,
+                                  color: theme.colorScheme.onPrimary,
                                 ),
                               ),
                             ),
@@ -285,7 +285,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 child: GestureDetector(
                   onTap: () => setState(() => showLessonDialog = false),
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.3),
+                    color: theme.colorScheme.shadow.withValues(alpha: 0.3),
                     child: Center(
                       child: Container(
                         width: 320,
@@ -295,7 +295,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
+                              color: theme.colorScheme.shadow.withValues(alpha: 0.08),
                               blurRadius: 16,
                               offset: const Offset(0, 8),
                             ),
@@ -413,7 +413,7 @@ class _ShopScreenState extends State<ShopScreen> {
     ThemeData theme = Theme.of(context);
     final Color selected = theme.colorScheme.primary;
     final Color unselected = theme.colorScheme.lightBlue.withValues(alpha: 0.5,);
-    final Color selectedText = Colors.white;
+    final Color selectedText = theme.colorScheme.onPrimary;
     final Color unselectedText = theme.colorScheme.primary;
 
     return Row(

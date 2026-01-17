@@ -119,7 +119,7 @@ class StickerCollectionWidget extends StatelessWidget {
                     childWhenDragging: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.3),
+                        color: theme.colorScheme.outline.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Image.network(

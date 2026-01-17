@@ -264,7 +264,7 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
           color: theme.colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: theme.colorScheme.shadow.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, -2),
             ),
@@ -324,7 +324,7 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
               userAnswers[index].isNotEmpty
                   ? FontAwesomeIcons.solidCircleCheck
                   : FontAwesomeIcons.circle,
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             title: Text(
               'Q${index + 1}: ${widget.questionSet.questions[index].questionText}',

@@ -68,7 +68,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
           ),
           child: const Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
             ),
           ),
         ),
@@ -97,14 +97,14 @@ class _SelectionScreenState extends State<SelectionScreen> {
                   Text(
                     'Welcome to SafeScales',
                     style: theme.textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
+                      color: theme.colorScheme.onPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Choose your learning path',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
+                      color: theme.colorScheme.onPrimary,
                     ),
                   ),
                   const SizedBox(height: 48),

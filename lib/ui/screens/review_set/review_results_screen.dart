@@ -62,7 +62,7 @@ class _ReviewResultsScreen extends State<ReviewResultsScreen> {
     ThemeData theme = Theme.of(context);
     final Color selected = theme.colorScheme.primary;
     final Color unselected = theme.colorScheme.lightBlue.withValues(alpha: 0.5,);
-    final Color selectedText = Colors.white;
+    final Color selectedText = theme.colorScheme.onPrimary;
     final Color unselectedText = theme.colorScheme.primary;
 
     return Row(

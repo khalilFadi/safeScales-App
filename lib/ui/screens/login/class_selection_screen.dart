@@ -95,7 +95,7 @@ class _ClassSelectionScreenState extends State<ClassSelectionScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Successfully joined class!'),
-              backgroundColor: Colors.green,
+              backgroundColor: theme.colorScheme.secondaryContainer,
             ),
           );
 
@@ -112,7 +112,7 @@ class _ClassSelectionScreenState extends State<ClassSelectionScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('You have already joined this class'),
-              backgroundColor: Colors.orange,
+              backgroundColor: theme.colorScheme.tertiaryContainer,
             ),
           );
         }
@@ -120,7 +120,7 @@ class _ClassSelectionScreenState extends State<ClassSelectionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(content: Text(e.toString()), backgroundColor: theme.colorScheme.errorContainer),
         );
       }
     } finally {
@@ -157,7 +157,7 @@ class _ClassSelectionScreenState extends State<ClassSelectionScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: Icon(Icons.arrow_back, color: theme.colorScheme.onPrimary),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
@@ -176,7 +176,7 @@ class _ClassSelectionScreenState extends State<ClassSelectionScreen> {
                         Text(
                           'Available Classes',
                           style: theme.textTheme.headlineMedium?.copyWith(
-                            color: Colors.white,
+                            color: theme.colorScheme.onPrimary,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -193,7 +193,7 @@ class _ClassSelectionScreenState extends State<ClassSelectionScreen> {
                           Center(
                             child: Text(
                               'Error: $error',
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: theme.colorScheme.error),
                             ),
                           )
                         else if (classes.isEmpty)

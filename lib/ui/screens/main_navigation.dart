@@ -85,7 +85,8 @@ class _MainNavigationState extends State<MainNavigation> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error logging out: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: theme.colorScheme.errorContainer,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -136,7 +137,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: theme.colorScheme.shadow.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
               ),
@@ -153,7 +154,7 @@ class _MainNavigationState extends State<MainNavigation> {
           elevation: 0,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: primary,
-          unselectedItemColor: Colors.blue[100],
+          unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           showUnselectedLabels: true,
           items: [
             const BottomNavigationBarItem(

@@ -19,7 +19,7 @@ class ImageThumbnail extends StatelessWidget {
   void _showExpandedImage(BuildContext context) {
     showDialog(
       context: context,
-      barrierColor: Colors.black87,
+      barrierColor: theme.colorScheme.shadow.withOpacity(0.87),
       builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: Colors.transparent,
@@ -42,15 +42,14 @@ class ImageThumbnail extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.broken_image,
-                              color: Colors.white,
+                              color: theme.colorScheme.onSurface,
                               size: 64,
                             ),
                             SizedBox(height: 16),
                             Text(
                               'Image failed to load',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
                           ],
@@ -67,12 +66,12 @@ class ImageThumbnail extends StatelessWidget {
                 child: IconButton(
                   icon: Icon(
                     Icons.close,
-                    color: Colors.white,
+                    color: theme.colorScheme.onSurface,
                     size: 32,
                   ),
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.black54,
+                    backgroundColor: theme.colorScheme.surface.withOpacity(0.8),
                     padding: EdgeInsets.all(8),
                   ),
                 ),
@@ -103,7 +102,7 @@ class ImageThumbnail extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
+                color: theme.colorScheme.shadow.withOpacity(0.15),
                 blurRadius: 8,
                 offset: Offset(0, 4),
                 spreadRadius: 1,

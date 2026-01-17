@@ -213,10 +213,14 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                           decoration: BoxDecoration(
-                            color: colorScheme.primaryContainer,
+                            color: theme.brightness == Brightness.light
+                                ? colorScheme.primary.withValues(alpha: 0.15)
+                                : colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: colorScheme.primary.withValues(alpha: 0.3),
+                              color: theme.brightness == Brightness.light
+                                  ? colorScheme.primary.withValues(alpha: 0.5)
+                                  : colorScheme.primary.withValues(alpha: 0.3),
                               width: 2,
                             ),
                           ),
@@ -226,14 +230,18 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                               Icon(
                                 Icons.pets,
                                 size: 20,
-                                color: colorScheme.onPrimaryContainer,
+                                color: theme.brightness == Brightness.light
+                                    ? colorScheme.primary
+                                    : colorScheme.onPrimaryContainer,
                               ),
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
                                   'Dragon Phase',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
+                                    color: theme.brightness == Brightness.light
+                                        ? colorScheme.primary
+                                        : colorScheme.onPrimaryContainer,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
                                   ),
@@ -253,12 +261,16 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                           decoration: BoxDecoration(
                             color: dragonDecorationProvider.getCurrentEnvironment() != null
-                                ? colorScheme.primaryContainer
+                                ? (theme.brightness == Brightness.light
+                                    ? colorScheme.primary.withValues(alpha: 0.15)
+                                    : colorScheme.primaryContainer)
                                 : colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: dragonDecorationProvider.getCurrentEnvironment() != null
-                                  ? colorScheme.primary.withValues(alpha: 0.3)
+                                  ? (theme.brightness == Brightness.light
+                                      ? colorScheme.primary.withValues(alpha: 0.5)
+                                      : colorScheme.primary.withValues(alpha: 0.3))
                                   : colorScheme.outline.withValues(alpha: 0.3),
                               width: 2,
                             ),
@@ -270,7 +282,9 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                                 Icons.landscape,
                                 size: 20,
                                 color: dragonDecorationProvider.getCurrentEnvironment() != null
-                                    ? colorScheme.onPrimaryContainer
+                                    ? (theme.brightness == Brightness.light
+                                        ? colorScheme.primary
+                                        : colorScheme.onPrimaryContainer)
                                     : colorScheme.onSurfaceVariant,
                               ),
                               const SizedBox(width: 8),
@@ -279,7 +293,9 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                                   _getEnvironmentDisplayName(dragonDecorationProvider),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: dragonDecorationProvider.getCurrentEnvironment() != null
-                                        ? colorScheme.onPrimaryContainer
+                                        ? (theme.brightness == Brightness.light
+                                            ? colorScheme.primary
+                                            : colorScheme.onPrimaryContainer)
                                         : colorScheme.onSurfaceVariant,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
