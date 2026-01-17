@@ -66,7 +66,7 @@ class _SelectionScreenState extends State<SelectionScreen> {
               ],
             ),
           ),
-          child: const Center(
+          child: Center(
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
             ),

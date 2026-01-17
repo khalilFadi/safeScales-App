@@ -12,6 +12,7 @@ import '../../../providers/course_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/styled_markdown.dart';
+import '../../widgets/tts_progress_bar.dart';
 import '../../widgets/voice_button.dart';
 import '../../widgets/reading_font_adjustment_dialog.dart';
 import '../../../services/tts_service.dart';
@@ -67,7 +68,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
       final controller = ScrollController();
       controller.addListener(() {
         if (mounted && _currentSlideIndex == index) {
-          final canScrollDown = controller.position.pixels <
+          final canScrollDown =
+              controller.position.pixels <
               controller.position.maxScrollExtent - 10;
           final canScrollUp = controller.position.pixels > 10;
           setState(() {
@@ -80,7 +82,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
       // Initialize scroll state
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && controller.hasClients) {
-          final canScrollDown = controller.position.pixels <
+          final canScrollDown =
+              controller.position.pixels <
               controller.position.maxScrollExtent - 10;
           final canScrollUp = controller.position.pixels > 10;
           setState(() {
@@ -142,9 +145,9 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
   Future<void> _markAsCompleted() async {
     // Prevent multiple calls
     if (_isCompleting || _isCompleted) return;
-    
+
     if (!mounted) return;
-    
+
     setState(() {
       _isCompleting = true;
     });
@@ -186,7 +189,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
         final shouldPopReading = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ReadingResultScreen(modeuleId: widget.moduleId),
+            builder:
+                (context) => ReadingResultScreen(modeuleId: widget.moduleId),
           ),
         );
 
@@ -248,7 +252,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller = _scrollControllers[index];
       if (controller != null && controller.hasClients && mounted) {
-        final canScrollDown = controller.position.pixels <
+        final canScrollDown =
+            controller.position.pixels <
             controller.position.maxScrollExtent - 10;
         final canScrollUp = controller.position.pixels > 10;
         setState(() {
@@ -296,18 +301,19 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                   ? 'Next'.toUpperCase()
                   : 'Complete'.toUpperCase(),
             ),
-            icon: _isCompleting 
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.colorScheme.onSurface,
+            icon:
+                _isCompleting
+                    ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                  )
-                : Icon(Icons.arrow_forward_ios_rounded),
+                    )
+                    : Icon(Icons.arrow_forward_ios_rounded),
           ),
         ],
       ),
@@ -418,9 +424,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                 pageIndex: index,
                 size: 35,
                 onStateChanged: () {
-                  setState(() {
-                    // Trigger rebuild to update UI state
-                  });
+                  // Trigger rebuild to update progress bar
+                  setState(() {});
                 },
               ),
               const SizedBox(width: 20),
@@ -460,16 +465,25 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Consumer<ThemeNotifier>(
                   builder: (context, themeNotifier, child) {
+                    // Get cleaned text for TTS position mapping
+                    // Use the cleaned text from TtsService if available, otherwise clean the full text
+                    final cleanText = _ttsService.currentText != null && _ttsService.currentText!.isNotEmpty
+                        ? _ttsService.currentText!
+                        : _enhanceTextForTTS(fullText);
+                    
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(headline, style: theme.textTheme.headlineMedium),
                         const SizedBox(height: 20),
+                        // Use StyledMarkdown for text display
                         StyledMarkdown(
-                          data: content,
+                          data: content.isNotEmpty ? content : 'No content available',
                           fontSizeScale: themeNotifier.readingFontSize,
                         ),
-                        const SizedBox(height: 30), // Bottom padding for scroll
+                        // Extra padding at bottom for progress bar
+                        SizedBox(height: _currentSlideIndex == index && 
+                            (_ttsService.isPlaying || _ttsService.isPaused) ? 80 : 30),
                       ],
                     );
                   },
@@ -512,6 +526,24 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                         ],
                       ),
                     ),
+                  ),
+                ),
+              // TTS Progress Bar at bottom
+              if (_currentSlideIndex == index)
+                Positioned(
+                  bottom: (_canScrollDown[index] ?? false) ? 40 : 0,
+                  left: 0,
+                  right: 0,
+                  child: Consumer<ThemeNotifier>(
+                    builder: (context, themeNotifier, child) {
+                      final cleanText = _ttsService.currentText != null && _ttsService.currentText!.isNotEmpty
+                          ? _ttsService.currentText!
+                          : _enhanceTextForTTS(fullText);
+                      return TtsProgressBar(
+                        ttsService: _ttsService,
+                        cleanText: cleanText,
+                      );
+                    },
                   ),
                 ),
               // Bottom scroll indicator
@@ -647,5 +679,23 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                 ),
       ),
     );
+  }
+
+  /// Clean text for TTS (same logic as TtsService._enhanceTextForNaturalSpeech)
+  String _enhanceTextForTTS(String text) {
+    String enhanced = text
+        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), r'$1') // Bold
+        .replaceAll(RegExp(r'\*(.*?)\*'), r'$1') // Italic
+        .replaceAll(RegExp(r'`(.*?)`'), r'$1') // Code
+        .replaceAll(RegExp(r'\[(.*?)\]\(.*?\)'), r'$1') // Links
+        .replaceAll(RegExp(r'#{1,6}\s*'), '') // Headers
+        .replaceAll(RegExp(r'^[-*+]\s*'), '') // List items
+        .replaceAll(RegExp(r'^\d+\.\s*'), '') // Numbered lists
+        .replaceAll(RegExp(r'\n\s*\n'), '. ') // Multiple newlines to periods
+        .replaceAll(RegExp(r'\n'), ' ') // Single newlines to spaces
+        .replaceAll(RegExp(r'\s+'), ' ') // Multiple spaces to single space
+        .trim();
+
+    return enhanced;
   }
 }

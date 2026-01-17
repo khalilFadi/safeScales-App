@@ -17,6 +17,7 @@
         "font_awesome_flutter",
         "google_fonts",
         "image_picker",
+        "markdown",
         "package_info_plus",
         "page_flip",
         "page_flip_builder",
@@ -100,6 +101,14 @@
         "url_launcher_platform_interface",
         "url_launcher_web",
         "url_launcher_windows"
+      ]
+    },
+    {
+      "name": "markdown",
+      "version": "7.3.0",
+      "dependencies": [
+        "args",
+        "meta"
       ]
     },
     {
@@ -546,12 +555,9 @@
       ]
     },
     {
-      "name": "markdown",
-      "version": "7.3.0",
-      "dependencies": [
-        "args",
-        "meta"
-      ]
+      "name": "args",
+      "version": "2.7.0",
+      "dependencies": []
     },
     {
       "name": "win32",
@@ -637,11 +643,6 @@
         "source_span",
         "yaml"
       ]
-    },
-    {
-      "name": "args",
-      "version": "2.7.0",
-      "dependencies": []
     },
     {
       "name": "logging",

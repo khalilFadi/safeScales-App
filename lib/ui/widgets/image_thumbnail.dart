@@ -17,6 +17,7 @@ class ImageThumbnail extends StatelessWidget {
   });
 
   void _showExpandedImage(BuildContext context) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       barrierColor: theme.colorScheme.shadow.withOpacity(0.87),
@@ -126,10 +127,11 @@ class ImageThumbnail extends StatelessWidget {
                     color: theme.colorScheme.surfaceVariant,
                     child: Center(
                       child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
+                        value:
+                            loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
                       ),
                     ),
                   );

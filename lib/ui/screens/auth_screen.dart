@@ -43,6 +43,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
           if (!success) {
             if (mounted) {
+              final theme = Theme.of(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Invalid email or password'),
@@ -76,6 +77,7 @@ class _AuthScreenState extends State<AuthScreen> {
             setState(() {
               isLogin = true;
             });
+            final theme = Theme.of(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Account created successfully! Please log in.'),
@@ -86,8 +88,12 @@ class _AuthScreenState extends State<AuthScreen> {
         }
       } catch (e) {
         if (mounted) {
+          final theme = Theme.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: theme.colorScheme.errorContainer),
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: theme.colorScheme.errorContainer,
+            ),
           );
         }
       } finally {

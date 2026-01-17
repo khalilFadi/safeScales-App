@@ -40,7 +40,11 @@ class _MainNavigationState extends State<MainNavigation> {
 
     _pages = <Widget>[
       // Hard code shop index here, that way this information doesn't need to be shared across files
-      HomeScreen(onNavigateToShop: () {_navigateToTab(3);}),
+      HomeScreen(
+        onNavigateToShop: () {
+          _navigateToTab(3);
+        },
+      ),
       DragonsScreen(),
       ItemsScreen(),
       ShopScreen(),
@@ -82,6 +86,7 @@ class _MainNavigationState extends State<MainNavigation> {
       }
     } catch (e) {
       if (mounted) {
+        final theme = Theme.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error logging out: $e'),
@@ -144,43 +149,45 @@ class _MainNavigationState extends State<MainNavigation> {
             ],
           ),
           child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: primary,
-          unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-          showUnselectedLabels: true,
-          items: [
-            const BottomNavigationBarItem(
-              icon: FaIcon(FontAwesomeIcons.graduationCap),
-              label: 'Home',
+            currentIndex: _selectedIndex,
+            onTap: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: primary,
+            unselectedItemColor: theme.colorScheme.onSurface.withValues(
+              alpha: 0.5,
             ),
-            const BottomNavigationBarItem(
-              icon: FaIcon(FontAwesomeIcons.dragon),
-              label: 'Dragons',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.extension),
-              label: 'Items',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.storefront),
-              label: 'Shop',
-            ),
+            showUnselectedLabels: true,
+            items: [
+              const BottomNavigationBarItem(
+                icon: FaIcon(FontAwesomeIcons.graduationCap),
+                label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: FaIcon(FontAwesomeIcons.dragon),
+                label: 'Dragons',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.extension),
+                label: 'Items',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.storefront),
+                label: 'Shop',
+              ),
 
-            //TODO: Remove later
-            // const BottomNavigationBarItem(
-            //   icon: Icon(Icons.device_hub),
-            //   label: 'Dev',
-            // ),
-          ],
-        ),
+              //TODO: Remove later
+              // const BottomNavigationBarItem(
+              //   icon: Icon(Icons.device_hub),
+              //   label: 'Dev',
+              // ),
+            ],
+          ),
         ),
       ),
     );
