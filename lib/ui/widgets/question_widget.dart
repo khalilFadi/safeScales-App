@@ -69,8 +69,19 @@ class _QuestionWidgetState extends State<QuestionWidget> {
     super.didUpdateWidget(oldWidget);
     // Reset scroll position when question changes
     if (oldWidget.question != widget.question) {
-      _scrollController.jumpTo(0);
-      _optionsScrollController.jumpTo(0);
+      // Use post-frame callback to ensure scroll reset happens after widget rebuilds
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          // Reset options scroll controller (the ListView)
+          if (_optionsScrollController.hasClients) {
+            _optionsScrollController.jumpTo(0);
+          }
+          // Reset main scroll controller if it has clients
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(0);
+          }
+        }
+      });
       _loadNote(); // Reload note for new question
     }
   }

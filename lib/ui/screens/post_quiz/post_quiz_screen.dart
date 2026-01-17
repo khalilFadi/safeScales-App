@@ -366,6 +366,7 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
             // Question widget
             Expanded(
               child: QuestionWidget(
+                key: ValueKey(widget.questionSet.questions[currentQuestionIndex].id),
                 question: widget.questionSet.questions[currentQuestionIndex],
                 selectedAnswers: userAnswers[currentQuestionIndex],
                 onAnswerChanged: (answers) {
