@@ -32,7 +32,6 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   final double optionPadding = 15;
   final double optionMargin = 10;
   late ScrollController _scrollController;
-  late ScrollController _optionsScrollController;
   final NotesService _notesService = NotesService();
   String? _savedNote;
 
@@ -40,7 +39,6 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _optionsScrollController = ScrollController();
     _loadNote();
   }
 
@@ -60,7 +58,6 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _optionsScrollController.dispose();
     super.dispose();
   }
 
@@ -72,10 +69,6 @@ class _QuestionWidgetState extends State<QuestionWidget> {
       // Use post-frame callback to ensure scroll reset happens after widget rebuilds
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          // Reset options scroll controller (the ListView)
-          if (_optionsScrollController.hasClients) {
-            _optionsScrollController.jumpTo(0);
-          }
           // Reset main scroll controller if it has clients
           if (_scrollController.hasClients) {
             _scrollController.jumpTo(0);
@@ -213,83 +206,156 @@ class _QuestionWidgetState extends State<QuestionWidget> {
 
     // Different layout when images are present
     if (hasImage) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (question.text != null) ...[
-            // Extra Text exists with image
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              constraints: BoxConstraints(maxHeight: 200),
-              child: SingleChildScrollView(
+      return SingleChildScrollView(
+        controller: _scrollController,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (question.text != null) ...[
+              // Extra Text exists with image
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 12),
                 child: StyledMarkdown(
                   data: question.text!,
                   fontSizeScale: AppTheme.fontSizeScale,
                 ),
               ),
+            ],
+
+            // Question with image - no spacer, better spacing
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: StyledMarkdown(
+                      data: question.questionText,
+                      fontSizeScale: AppTheme.fontSizeScale,
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      size: 20,
+                    ),
+                    onSelected: (value) {
+                      _handleMenuAction(value);
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      PopupMenuItem<String>(
+                        value: 'copy_question',
+                        child: Row(
+                          children: [
+                            Icon(Icons.copy, size: 18),
+                            SizedBox(width: 8),
+                            Text('Copy Question'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'save_note',
+                        child: Row(
+                          children: [
+                            Icon(Icons.note_add, size: 18),
+                            SizedBox(width: 8),
+                            Text('Save Note'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 24),
+
+            instructionText,
+
+            buildOptions(),
+
+            // Show saved note if exists
+            if (_savedNote != null && _savedNote!.isNotEmpty)
+              _buildSavedNoteSection(),
+
+            // Show explanation after user answers (when response is locked or we have answers)
+            if (widget.showExplanation &&
+                question.explanation.isNotEmpty &&
+                (widget.isResponseLocked || widget.selectedAnswers.isNotEmpty))
+              _buildExplanationSection(),
+          ],
+        ),
+      );
+    }
+
+    // Original layout when no images
+    return SingleChildScrollView(
+      controller: _scrollController,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (question.text != null) ...[
+            // Extra Text exists, show it first
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: StyledMarkdown(
+                data: question.text!,
+                fontSizeScale: AppTheme.fontSizeScale,
+              ),
             ),
           ],
 
-          // Question with image - no spacer, better spacing
-          Container(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: 300),
-                    child: SingleChildScrollView(
-                      child: StyledMarkdown(
-                        data: question.questionText,
-                        fontSizeScale: AppTheme.fontSizeScale,
-                      ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: StyledMarkdown(
+                  data: question.questionText,
+                  fontSizeScale: AppTheme.fontSizeScale,
+                ),
+              ),
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  size: 20,
+                ),
+                onSelected: (value) {
+                  _handleMenuAction(value);
+                },
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem<String>(
+                    value: 'copy_question',
+                    child: Row(
+                      children: [
+                        Icon(Icons.copy, size: 18),
+                        SizedBox(width: 8),
+                        Text('Copy Question'),
+                      ],
                     ),
                   ),
-                ),
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    size: 20,
+                  PopupMenuItem<String>(
+                    value: 'save_note',
+                    child: Row(
+                      children: [
+                        Icon(Icons.note_add, size: 18),
+                        SizedBox(width: 8),
+                        Text('Save Note'),
+                      ],
+                    ),
                   ),
-                  onSelected: (value) {
-                    _handleMenuAction(value);
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    PopupMenuItem<String>(
-                      value: 'copy_question',
-                      child: Row(
-                        children: [
-                          Icon(Icons.copy, size: 18),
-                          SizedBox(width: 8),
-                          Text('Copy Question'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'save_note',
-                      child: Row(
-                        children: [
-                          Icon(Icons.note_add, size: 18),
-                          SizedBox(width: 8),
-                          Text('Save Note'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
 
-          SizedBox(height: 24),
+          SizedBox(height: 20),
 
           instructionText,
 
-          Flexible(
-            child: buildScrollableOptions(),
-          ),
+          buildOptions(),
 
           // Show saved note if exists
           if (_savedNote != null && _savedNote!.isNotEmpty)
@@ -301,98 +367,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
               (widget.isResponseLocked || widget.selectedAnswers.isNotEmpty))
             _buildExplanationSection(),
         ],
-      );
-    }
-
-    // Original layout when no images
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // If no extra text place spacer before question - to push question to the bottom
-        if (question.text == null) const Spacer(),
-
-        if (question.text != null) ...[
-          // Extra Text exists, show it first, then do spacer, then question
-          Container(
-            constraints: BoxConstraints(maxHeight: 200),
-            child: SingleChildScrollView(
-              child: StyledMarkdown(
-                data: question.text!,
-                fontSizeScale: AppTheme.fontSizeScale,
-              ),
-            ),
-          ),
-
-          const Spacer(),
-        ],
-
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: 300),
-                child: SingleChildScrollView(
-                  child: StyledMarkdown(
-                    data: question.questionText,
-                    fontSizeScale: AppTheme.fontSizeScale,
-                  ),
-                ),
-              ),
-            ),
-            PopupMenuButton<String>(
-              icon: Icon(
-                Icons.more_vert,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                size: 20,
-              ),
-              onSelected: (value) {
-                _handleMenuAction(value);
-              },
-              itemBuilder: (BuildContext context) => [
-                PopupMenuItem<String>(
-                  value: 'copy_question',
-                  child: Row(
-                    children: [
-                      Icon(Icons.copy, size: 18),
-                      SizedBox(width: 8),
-                      Text('Copy Question'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'save_note',
-                  child: Row(
-                    children: [
-                      Icon(Icons.note_add, size: 18),
-                      SizedBox(width: 8),
-                      Text('Save Note'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-
-        SizedBox(height: 20),
-
-        instructionText,
-
-        Flexible(
-          child: buildScrollableOptions(),
-        ),
-
-        // Show saved note if exists
-        if (_savedNote != null && _savedNote!.isNotEmpty)
-          _buildSavedNoteSection(),
-
-        // Show explanation after user answers (when response is locked or we have answers)
-        if (widget.showExplanation &&
-            question.explanation.isNotEmpty &&
-            (widget.isResponseLocked || widget.selectedAnswers.isNotEmpty))
-          _buildExplanationSection(),
-      ],
+      ),
     );
     //   ),
     // );
@@ -470,28 +445,30 @@ class _QuestionWidgetState extends State<QuestionWidget> {
     );
   }
 
-  Widget buildScrollableOptions() {
+  Widget buildOptions() {
     double fontScale = AppTheme.fontSizeScale;
 
-    return ListView.builder(
-      controller: _optionsScrollController,
-      shrinkWrap: false,
+    return Padding(
       padding: EdgeInsets.symmetric(
         vertical: 10 * fontScale,
         horizontal: 0,
       ),
-      itemCount: widget.question.options.length,
-      itemBuilder: (context, index) {
-        final option = widget.question.options[index];
-        final isSelected = widget.selectedAnswers.contains(index);
-        return buildOption(
-          widget.selectedAnswers,
-          widget.question,
-          isSelected,
-          index,
-          option,
-        );
-      },
+      child: Column(
+        children: List.generate(
+          widget.question.options.length,
+          (index) {
+            final option = widget.question.options[index];
+            final isSelected = widget.selectedAnswers.contains(index);
+            return buildOption(
+              widget.selectedAnswers,
+              widget.question,
+              isSelected,
+              index,
+              option,
+            );
+          },
+        ),
+      ),
     );
   }
 

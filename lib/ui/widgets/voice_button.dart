@@ -32,8 +32,8 @@ class _VoiceButtonState extends State<VoiceButton>
   TtsState _currentState = TtsState.stopped;
 
   // Global speed control - shared across all VoiceButton instances
-  // Options from 0.5 to 2.0 with 0.25 intervals
-  static final List<double> speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+  // Display options from 1.0 to 2.5 with 0.5 intervals (backend receives -0.5)
+  static final List<double> speedOptions = [1.0, 1.5, 2.0, 2.5];
   static final Set<_VoiceButtonState> _activeInstances = <_VoiceButtonState>{};
 
   @override
@@ -80,10 +80,10 @@ class _VoiceButtonState extends State<VoiceButton>
 
     switch (_currentState) {
       case TtsState.stopped:
-        // Apply current speed before speaking (divide by 2 so 1.0x becomes 0.5)
+        // Apply current speed before speaking (subtract 0.5 so displayed 1.0x becomes backend 0.5)
         if (mounted) {
           final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
-          await _ttsService.setSpeechRate(themeNotifier.readingSpeed / 2.0);
+          await _ttsService.setSpeechRate(themeNotifier.readingSpeed - 0.5);
         }
         await _ttsService.speak(widget.text, pageIndex: widget.pageIndex);
         break;
@@ -121,12 +121,12 @@ class _VoiceButtonState extends State<VoiceButton>
     try {
       final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
       final speed = themeNotifier.readingSpeed;
-      debugPrint('VoiceButton: Applying speed from provider: $speed (TTS: ${speed / 2.0})');
-      await _ttsService.setSpeechRate(speed / 2.0);
+      debugPrint('VoiceButton: Applying speed from provider: $speed (TTS: ${speed - 0.5})');
+      await _ttsService.setSpeechRate(speed - 0.5);
     } catch (e) {
       debugPrint('VoiceButton: Error applying speed from provider: $e');
-      // Fallback to default speed (0.25 = 0.5 / 2)
-      await _ttsService.setSpeechRate(0.25);
+      // Fallback to default speed (0.5 = 1.0 - 0.5)
+      await _ttsService.setSpeechRate(0.5);
     }
   }
 
@@ -134,8 +134,8 @@ class _VoiceButtonState extends State<VoiceButton>
     if (!mounted) return;
     final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
     themeNotifier.updateReadingSpeed(newSpeed);
-    // Divide by 2 so 1.0x becomes 0.5 for TTS
-    await _ttsService.setSpeechRate(newSpeed / 2.0);
+    // Subtract 0.5 so displayed 1.0x becomes backend 0.5 for TTS
+    await _ttsService.setSpeechRate(newSpeed - 0.5);
     
     // Notify all active instances to update their UI
     _notifyAllInstances();
@@ -414,8 +414,8 @@ class _VoiceControlsState extends State<VoiceControls> {
       final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
       themeNotifier.updateReadingSpeed(closestSpeed);
     }
-    // Divide by 2 so 1.0x becomes 0.5 for TTS
-    await _ttsService.setSpeechRate(closestSpeed / 2.0);
+    // Subtract 0.5 so displayed 1.0x becomes backend 0.5 for TTS
+    await _ttsService.setSpeechRate(closestSpeed - 0.5);
 
     // Notify all VoiceButton instances to update their UI
     _VoiceButtonState._notifyAllInstances();
@@ -428,7 +428,7 @@ class _VoiceControlsState extends State<VoiceControls> {
       final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
       return themeNotifier.readingSpeed;
     }
-    return 0.5; // Default fallback (half of previous 1.0)
+    return 1.0; // Default fallback (displays as 1.0, backend gets 0.5)
   }
 
   void _updateVolume(double volume) async {
@@ -486,9 +486,9 @@ class _VoiceControlsState extends State<VoiceControls> {
                       Expanded(
                         child: Slider(
                           value: _speechRate,
-                          min: 0.5,
-                          max: 2.0,
-                          divisions: 6,
+                          min: 1.0,
+                          max: 2.5,
+                          divisions: 3,
                           onChanged: _updateSpeechRate,
                         ),
                       ),

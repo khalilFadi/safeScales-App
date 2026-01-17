@@ -6,7 +6,7 @@ class ThemeNotifier extends ChangeNotifier {
   bool _isDarkMode = false;
   double _fontSize = 1.0;
   double _readingFontSize = 1.0;
-  double _readingSpeed = 0.5; // Default speed (half of previous 1.0)
+  double _readingSpeed = 1.0; // Default speed (displays as 1.0, backend receives 0.5)
   AppThemeType _themeType = AppThemeType.classicBlue;
   final UserStateService _userState;
 
@@ -83,7 +83,12 @@ class ThemeNotifier extends ChangeNotifier {
       _readingSpeed =
           (settings['readingSpeed'] != null)
               ? (settings['readingSpeed'] as num).toDouble()
-              : 0.5; // Default to 0.5 if not set (half of previous 1.0)
+              : 1.0; // Default to 1.0 if not set (displays as 1.0, backend receives 0.5)
+      
+      // Migrate old values (< 1.0) to new display format by adding 0.5
+      if (_readingSpeed < 1.0) {
+        _readingSpeed = _readingSpeed + 0.5;
+      }
 
       // Load theme type
       if (settings['themeType'] != null) {
