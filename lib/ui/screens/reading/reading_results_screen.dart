@@ -1,10 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:safe_scales/ui/widgets/dragon_image_widget.dart';
 
-class ReadingResultScreen extends StatelessWidget {
+class ReadingResultScreen extends StatefulWidget {
   const ReadingResultScreen({super.key, required this.modeuleId});
 
   final String modeuleId;
+
+  @override
+  State<ReadingResultScreen> createState() => _ReadingResultScreenState();
+}
+
+class _ReadingResultScreenState extends State<ReadingResultScreen> {
+  bool _isNavigating = false;
+
+  void _handleReturnToLesson() {
+    // Prevent multiple taps
+    if (_isNavigating || !mounted) return;
+    
+    setState(() {
+      _isNavigating = true;
+    });
+    
+    // Pop immediately after setting state
+    // The mounted check ensures we don't pop if widget is disposed
+    if (mounted) {
+      Navigator.pop(context, true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +63,7 @@ class ReadingResultScreen extends StatelessWidget {
               SizedBox(height: 30),
 
               DragonImageWidget(
-                moduleId: modeuleId,
+                moduleId: widget.modeuleId,
                 phase: 'stage2',
                 size: 300,
               ),
@@ -61,19 +83,28 @@ class ReadingResultScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context, true);
-                  },
+                  onPressed: _isNavigating ? null : _handleReturnToLesson,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.secondary,
                     foregroundColor: theme.colorScheme.onSecondary,
                   ),
-                  child: Text(
-                    'Return to lesson'.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: theme.textTheme.bodyMedium?.fontSize,
-                    ),
-                  ),
+                  child: _isNavigating
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.colorScheme.onSecondary,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          'Return to lesson'.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: theme.textTheme.bodyMedium?.fontSize,
+                          ),
+                        ),
                 ),
               ),
             ],

@@ -43,6 +43,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
   // final GlobalKey<PageFlipWidgetState> _pageFlipKey = GlobalKey<PageFlipWidgetState>();
 
   bool _isCompleted = false;
+  bool _isCompleting = false; // Prevent multiple taps on Complete button
 
   @override
   void initState() {
@@ -139,12 +140,18 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
   }
 
   Future<void> _markAsCompleted() async {
-    try {
-      // final user = _userState.currentUser;
-      // if (user == null) return;
+    // Prevent multiple calls
+    if (_isCompleting || _isCompleted) return;
+    
+    if (!mounted) return;
+    
+    setState(() {
+      _isCompleting = true;
+    });
 
+    try {
       // Save progress immediately when reading is completed
-      await Provider.of<CourseProvider>(
+      final success = await Provider.of<CourseProvider>(
         context,
         listen: false,
       ).saveReadingProgress(
@@ -152,25 +159,49 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
         bookmarks: _bookmarkedPages,
       );
 
-      // Save isComplete flag.
-      _isCompleted = true;
+      // Only proceed if save was successful
+      if (!success) {
+        if (mounted) {
+          setState(() {
+            _isCompleting = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error saving progress. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
 
-      // Navigate to results screen and wait for it to return
-      final shouldPopReading = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ReadingResultScreen(modeuleId: widget.moduleId),
-        ),
-      );
+      // Save isComplete flag only after successful save
+      if (mounted) {
+        setState(() {
+          _isCompleted = true;
+          _isCompleting = false;
+        });
 
-      // Only pop the reading screen if the results screen returned true
-      // (meaning the user wants to go back to the lesson)
-      if (mounted && shouldPopReading == true) {
-        Navigator.pop(context, true);
+        // Navigate to results screen and wait for it to return
+        final shouldPopReading = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReadingResultScreen(modeuleId: widget.moduleId),
+          ),
+        );
+
+        // Only pop the reading screen if the results screen returned true
+        // (meaning the user wants to go back to the lesson)
+        if (mounted && shouldPopReading == true) {
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       print('❌Error marking reading as completed: $e');
       if (mounted) {
+        setState(() {
+          _isCompleting = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving progress: $e'),
@@ -181,7 +212,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
     }
   }
 
-  void _nextSlide() {
+  Future<void> _nextSlide() async {
     if (_currentSlideIndex < _readingSlides.length - 1) {
       _ttsService.stop(); // Stop Audio when changing pages
 
@@ -190,7 +221,8 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      _markAsCompleted();
+      // Properly await the completion process
+      await _markAsCompleted();
     }
   }
 
@@ -258,13 +290,24 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
           ),
           TextButton.icon(
             iconAlignment: IconAlignment.end,
-            onPressed: _nextSlide,
+            onPressed: _isCompleting ? null : _nextSlide,
             label: Text(
               _currentSlideIndex < _readingSlides.length - 1
                   ? 'Next'.toUpperCase()
                   : 'Complete'.toUpperCase(),
             ),
-            icon: Icon(Icons.arrow_forward_ios_rounded),
+            icon: _isCompleting 
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  )
+                : Icon(Icons.arrow_forward_ios_rounded),
           ),
         ],
       ),
