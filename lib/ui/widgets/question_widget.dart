@@ -32,6 +32,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   final double optionPadding = 15;
   final double optionMargin = 10;
   late ScrollController _scrollController;
+  late ScrollController _optionsScrollController;
   final NotesService _notesService = NotesService();
   String? _savedNote;
 
@@ -39,6 +40,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _optionsScrollController = ScrollController();
     _loadNote();
   }
 
@@ -58,6 +60,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _optionsScrollController.dispose();
     super.dispose();
   }
 
@@ -67,6 +70,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
     // Reset scroll position when question changes
     if (oldWidget.question != widget.question) {
       _scrollController.jumpTo(0);
+      _optionsScrollController.jumpTo(0);
       _loadNote(); // Reload note for new question
     }
   }
@@ -205,9 +209,12 @@ class _QuestionWidgetState extends State<QuestionWidget> {
             // Extra Text exists with image
             Container(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: StyledMarkdown(
-                data: question.text!,
-                fontSizeScale: AppTheme.fontSizeScale,
+              constraints: BoxConstraints(maxHeight: 200),
+              child: SingleChildScrollView(
+                child: StyledMarkdown(
+                  data: question.text!,
+                  fontSizeScale: AppTheme.fontSizeScale,
+                ),
               ),
             ),
           ],
@@ -219,9 +226,14 @@ class _QuestionWidgetState extends State<QuestionWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: StyledMarkdown(
-                    data: question.questionText,
-                    fontSizeScale: AppTheme.fontSizeScale,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: 300),
+                    child: SingleChildScrollView(
+                      child: StyledMarkdown(
+                        data: question.questionText,
+                        fontSizeScale: AppTheme.fontSizeScale,
+                      ),
+                    ),
                   ),
                 ),
                 PopupMenuButton<String>(
@@ -264,7 +276,9 @@ class _QuestionWidgetState extends State<QuestionWidget> {
 
           instructionText,
 
-          buildScrollableOptions(),
+          Flexible(
+            child: buildScrollableOptions(),
+          ),
 
           // Show saved note if exists
           if (_savedNote != null && _savedNote!.isNotEmpty)
@@ -288,9 +302,14 @@ class _QuestionWidgetState extends State<QuestionWidget> {
 
         if (question.text != null) ...[
           // Extra Text exists, show it first, then do spacer, then question
-          StyledMarkdown(
-            data: question.text!,
-            fontSizeScale: AppTheme.fontSizeScale,
+          Container(
+            constraints: BoxConstraints(maxHeight: 200),
+            child: SingleChildScrollView(
+              child: StyledMarkdown(
+                data: question.text!,
+                fontSizeScale: AppTheme.fontSizeScale,
+              ),
+            ),
           ),
 
           const Spacer(),
@@ -300,9 +319,14 @@ class _QuestionWidgetState extends State<QuestionWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: StyledMarkdown(
-                data: question.questionText,
-                fontSizeScale: AppTheme.fontSizeScale,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: 300),
+                child: SingleChildScrollView(
+                  child: StyledMarkdown(
+                    data: question.questionText,
+                    fontSizeScale: AppTheme.fontSizeScale,
+                  ),
+                ),
               ),
             ),
             PopupMenuButton<String>(
@@ -344,7 +368,9 @@ class _QuestionWidgetState extends State<QuestionWidget> {
 
         instructionText,
 
-        buildScrollableOptions(),
+        Flexible(
+          child: buildScrollableOptions(),
+        ),
 
         // Show saved note if exists
         if (_savedNote != null && _savedNote!.isNotEmpty)
@@ -434,90 +460,27 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   }
 
   Widget buildScrollableOptions() {
-    double optionFontSize =
-        Theme.of(context).textTheme.bodyMedium?.fontSize ?? 18;
-
     double fontScale = AppTheme.fontSizeScale;
-    double maxHeight = 250;
 
-    // Estimate average option height (you'll need to tune this based on your buildOption implementation)
-    // 30 from the 15 all around padding around the text
-    // 20 for the vertical margin between options
-    double estimatedOptionHeight =
-        (optionFontSize + optionPadding * 2 + optionMargin * 2) *
-        fontScale; // Adjust this value
-    double estimatedTotalHeight =
-        widget.question.options.length * estimatedOptionHeight;
-
-    bool hasOverflow = estimatedTotalHeight > maxHeight;
-
-    return Container(
-      height: hasOverflow ? maxHeight : null,
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Stack(
-        children: [
-          ListView.builder(
-            controller: _scrollController,
-            shrinkWrap: !hasOverflow,
-            padding: EdgeInsets.only(
-              bottom: hasOverflow ? (25 * fontScale) : (10 * fontScale),
-            ),
-            itemCount: widget.question.options.length,
-            itemBuilder: (context, index) {
-              final option = widget.question.options[index];
-              final isSelected = widget.selectedAnswers.contains(index);
-              return buildOption(
-                widget.selectedAnswers,
-                widget.question,
-                isSelected,
-                index,
-                option,
-              );
-            },
-          ),
-
-          if (hasOverflow)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 25 * fontScale,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Theme.of(context).colorScheme.surface,
-                      Theme.of(
-                        context,
-                      ).colorScheme.surface.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 18 * fontScale,
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      SizedBox(width: 5 * fontScale),
-                      Text(
-                        "Scroll for more",
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
+    return ListView.builder(
+      controller: _optionsScrollController,
+      shrinkWrap: false,
+      padding: EdgeInsets.symmetric(
+        vertical: 10 * fontScale,
+        horizontal: 0,
       ),
+      itemCount: widget.question.options.length,
+      itemBuilder: (context, index) {
+        final option = widget.question.options[index];
+        final isSelected = widget.selectedAnswers.contains(index);
+        return buildOption(
+          widget.selectedAnswers,
+          widget.question,
+          isSelected,
+          index,
+          option,
+        );
+      },
     );
   }
 
