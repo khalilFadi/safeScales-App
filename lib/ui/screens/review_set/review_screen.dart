@@ -332,11 +332,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(
-                            Icons.help_outline,
-                            color: theme.colorScheme.secondary,
-                          ),
-                          SizedBox(width: 8),
                           Text(
                             '${widget.questionSet.questions.length} questions',
                           ),
@@ -345,11 +340,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: theme.colorScheme.secondary,
-                          ),
-                          SizedBox(width: 8),
                           Expanded(child: Text(widget.questionSet.description)),
                         ],
                       ),

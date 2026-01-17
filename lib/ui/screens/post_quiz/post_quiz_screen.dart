@@ -433,11 +433,6 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
                       SizedBox(height: 10),
                       Row(
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: theme.colorScheme.secondary,
-                          ),
-                          SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               '${widget.questionSet.passingScore}% or higher is required to pass this quiz',
@@ -453,11 +448,6 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
 
                       Row(
                         children: [
-                          Icon(
-                            Icons.help_outline,
-                            color: theme.colorScheme.secondary,
-                          ),
-                          SizedBox(width: 10),
                           Text(
                             '${widget.questionSet.questions.length} questions',
                           ),
