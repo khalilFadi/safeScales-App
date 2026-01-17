@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -124,6 +126,7 @@ class _MainNavigationState extends State<MainNavigation> {
       body: _pages[_selectedIndex],
       bottomNavigationBar: SafeArea(
         top: false,
+        bottom: Platform.isAndroid, // Only apply bottom padding on Android
         child: Container(
           decoration: BoxDecoration(
             color: barColor,
