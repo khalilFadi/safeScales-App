@@ -314,11 +314,13 @@ class DragonDecorationService {
     // final relativeY = screenOffset.dy - dragTargetTop - dragonOffsetY - (stickerSize / 2);
 
     // Constrain to environment bounds
+    // Note: constrainStickerPosition already accounts for stickerSize in its clamp logic,
+    // so we pass the full containerSize
     return constrainStickerPosition(
       newPosition: screenOffset,
       containerSize: Size(
-        environmentSize.width - stickerSize,
-        environmentSize.height - stickerSize,
+        environmentSize.width,
+        environmentSize.height,
       ),
       stickerSize: stickerSize,
     );

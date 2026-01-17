@@ -356,13 +356,11 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                           }),
 
                       // Drop zone for dragon
+                      // Wrapped in IgnorePointer when not dragging to allow stickers behind to receive touches
                       DragTarget<Map<String, dynamic>>(
                         builder: (context, candidateData, rejectedData) {
-                          return GestureDetector(
-                            onTap: () {
-                              // Deselect any currently selected sticker when tapping background
-                              dragonDecorationProvider.selectSticker(null);
-                            },
+                          return IgnorePointer(
+                            ignoring: candidateData.isEmpty,
                             child: Container(
                               width: environmentSize.width,
                               height: environmentSize.height,
@@ -397,11 +395,13 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                         },
                       ),
 
-                      // Dragon Image
-                      DragonImageWidget(
-                        dragonId: widget.dragonId,
-                        size: dragonSize * 0.75,
-                        phase: selectedPhase,
+                      // Dragon Image - wrapped in IgnorePointer so stickers behind can be interacted with
+                      IgnorePointer(
+                        child: DragonImageWidget(
+                          dragonId: widget.dragonId,
+                          size: dragonSize * 0.75,
+                          phase: selectedPhase,
+                        ),
                       ),
 
                       // Stickers in front of the dragon
@@ -860,12 +860,13 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                     sticker.position.dx + details.delta.dx,
                     sticker.position.dy + details.delta.dy,
                   );
+                  // Constrain to habitat borders (stickerEnvironmentSize has 10px padding, add it back)
                   provider.updateStickerPosition(
                     stickerId: sticker.id,
                     newPosition: newPosition,
                     containerSize: Size(
-                      stickerEnvironmentSize.width,
-                      stickerEnvironmentSize.height,
+                      stickerEnvironmentSize.width + 10,
+                      stickerEnvironmentSize.height + 10,
                     ),
                   );
                 }
