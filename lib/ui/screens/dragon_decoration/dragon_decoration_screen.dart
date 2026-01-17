@@ -408,6 +408,9 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                 ),
               ),
 
+              // Whitespace between dragon habitat and item collection
+              const SizedBox(height: 24),
+
               // Accessory picker
               StickerCollectionWidget(
                 isLoadingAccessories:
