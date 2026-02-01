@@ -6,7 +6,8 @@ class ThemeNotifier extends ChangeNotifier {
   bool _isDarkMode = false;
   double _fontSize = 1.0;
   double _readingFontSize = 1.0;
-  double _readingSpeed = 1.0; // Default speed (displays as 1.0, backend receives 0.5)
+  double _readingSpeed =
+      1.0; // Default speed (displays as 1.0, backend receives 0.5)
   AppThemeType _themeType = AppThemeType.classicBlue;
   final UserStateService _userState;
 
@@ -84,7 +85,7 @@ class ThemeNotifier extends ChangeNotifier {
           (settings['readingSpeed'] != null)
               ? (settings['readingSpeed'] as num).toDouble()
               : 1.0; // Default to 1.0 if not set (displays as 1.0, backend receives 0.5)
-      
+
       // Migrate old values (< 1.0) to new display format by adding 0.5
       if (_readingSpeed < 1.0) {
         _readingSpeed = _readingSpeed + 0.5;
@@ -99,9 +100,9 @@ class ThemeNotifier extends ChangeNotifier {
         );
       }
 
-      AppTheme.setFontSizeScale(
-        _fontSize,
-      ); // Ensure font size is applied globally
+      // Font scale is only applied in the reading activity (readingFontSize).
+      // Global app theme always uses 1.0 so font adjustment only affects reading.
+      AppTheme.setFontSizeScale(1.0);
       AppTheme.setThemeType(
         _themeType,
       ); // Ensure theme type is applied globally

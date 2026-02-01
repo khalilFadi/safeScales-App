@@ -416,8 +416,6 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // TODO: Should Font adjustment just be for reading material?
-
               // Voice button
               VoiceButton(
                 text: fullText,
@@ -467,10 +465,12 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                   builder: (context, themeNotifier, child) {
                     // Get cleaned text for TTS position mapping
                     // Use the cleaned text from TtsService if available, otherwise clean the full text
-                    final cleanText = _ttsService.currentText != null && _ttsService.currentText!.isNotEmpty
-                        ? _ttsService.currentText!
-                        : _enhanceTextForTTS(fullText);
-                    
+                    final cleanText =
+                        _ttsService.currentText != null &&
+                                _ttsService.currentText!.isNotEmpty
+                            ? _ttsService.currentText!
+                            : _enhanceTextForTTS(fullText);
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -478,12 +478,21 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                         const SizedBox(height: 20),
                         // Use StyledMarkdown for text display
                         StyledMarkdown(
-                          data: content.isNotEmpty ? content : 'No content available',
+                          data:
+                              content.isNotEmpty
+                                  ? content
+                                  : 'No content available',
                           fontSizeScale: themeNotifier.readingFontSize,
                         ),
                         // Extra padding at bottom for progress bar
-                        SizedBox(height: _currentSlideIndex == index && 
-                            (_ttsService.isPlaying || _ttsService.isPaused) ? 80 : 30),
+                        SizedBox(
+                          height:
+                              _currentSlideIndex == index &&
+                                      (_ttsService.isPlaying ||
+                                          _ttsService.isPaused)
+                                  ? 80
+                                  : 30,
+                        ),
                       ],
                     );
                   },
@@ -536,9 +545,11 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                   right: 0,
                   child: Consumer<ThemeNotifier>(
                     builder: (context, themeNotifier, child) {
-                      final cleanText = _ttsService.currentText != null && _ttsService.currentText!.isNotEmpty
-                          ? _ttsService.currentText!
-                          : _enhanceTextForTTS(fullText);
+                      final cleanText =
+                          _ttsService.currentText != null &&
+                                  _ttsService.currentText!.isNotEmpty
+                              ? _ttsService.currentText!
+                              : _enhanceTextForTTS(fullText);
                       return TtsProgressBar(
                         ttsService: _ttsService,
                         cleanText: cleanText,
@@ -683,18 +694,22 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
 
   /// Clean text for TTS (same logic as TtsService._enhanceTextForNaturalSpeech)
   String _enhanceTextForTTS(String text) {
-    String enhanced = text
-        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), r'$1') // Bold
-        .replaceAll(RegExp(r'\*(.*?)\*'), r'$1') // Italic
-        .replaceAll(RegExp(r'`(.*?)`'), r'$1') // Code
-        .replaceAll(RegExp(r'\[(.*?)\]\(.*?\)'), r'$1') // Links
-        .replaceAll(RegExp(r'#{1,6}\s*'), '') // Headers
-        .replaceAll(RegExp(r'^[-*+]\s*'), '') // List items
-        .replaceAll(RegExp(r'^\d+\.\s*'), '') // Numbered lists
-        .replaceAll(RegExp(r'\n\s*\n'), '. ') // Multiple newlines to periods
-        .replaceAll(RegExp(r'\n'), ' ') // Single newlines to spaces
-        .replaceAll(RegExp(r'\s+'), ' ') // Multiple spaces to single space
-        .trim();
+    String enhanced =
+        text
+            .replaceAll(RegExp(r'\*\*(.*?)\*\*'), r'$1') // Bold
+            .replaceAll(RegExp(r'\*(.*?)\*'), r'$1') // Italic
+            .replaceAll(RegExp(r'`(.*?)`'), r'$1') // Code
+            .replaceAll(RegExp(r'\[(.*?)\]\(.*?\)'), r'$1') // Links
+            .replaceAll(RegExp(r'#{1,6}\s*'), '') // Headers
+            .replaceAll(RegExp(r'^[-*+]\s*'), '') // List items
+            .replaceAll(RegExp(r'^\d+\.\s*'), '') // Numbered lists
+            .replaceAll(
+              RegExp(r'\n\s*\n'),
+              '. ',
+            ) // Multiple newlines to periods
+            .replaceAll(RegExp(r'\n'), ' ') // Single newlines to spaces
+            .replaceAll(RegExp(r'\s+'), ' ') // Multiple spaces to single space
+            .trim();
 
     return enhanced;
   }
