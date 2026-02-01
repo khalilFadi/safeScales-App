@@ -116,18 +116,21 @@ class ClickableTextScrubber extends StatelessWidget {
         },
         // Only use custom builder if we have active highlighting
         // Otherwise use default rendering to avoid assertion errors
-        builders: (currentWordStart != null || wordsRead.isNotEmpty) ? {
-          // Custom paragraph builder with word-level highlighting and click handling
-          'p': _ClickableParagraphBuilder(
-            cleanText: cleanText,
-            currentWordStart: currentWordStart,
-            currentWordEnd: currentWordEnd,
-            wordsRead: wordsRead,
-            onWordTap: onWordTap,
-            theme: theme,
-            fontSizeScale: fontSizeScale,
-          ),
-        } : const {},
+        builders:
+            (currentWordStart != null || wordsRead.isNotEmpty)
+                ? {
+                  // Custom paragraph builder with word-level highlighting and click handling
+                  'p': _ClickableParagraphBuilder(
+                    cleanText: cleanText,
+                    currentWordStart: currentWordStart,
+                    currentWordEnd: currentWordEnd,
+                    wordsRead: wordsRead,
+                    onWordTap: onWordTap,
+                    theme: theme,
+                    fontSizeScale: fontSizeScale,
+                  ),
+                }
+                : const {},
       );
     } catch (e) {
       debugPrint('Markdown parsing error: $e');
@@ -145,7 +148,10 @@ class ClickableTextScrubber extends StatelessWidget {
     }
   }
 
-  MarkdownStyleSheet _getMarkdownStyleSheet(ThemeData theme, ColorScheme colorScheme) {
+  MarkdownStyleSheet _getMarkdownStyleSheet(
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return MarkdownStyleSheet(
       // Text styles with font size scaling
       p: theme.textTheme.bodyMedium?.copyWith(
@@ -153,13 +159,16 @@ class ClickableTextScrubber extends StatelessWidget {
         fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
       ),
       h1: theme.textTheme.headlineLarge?.copyWith(
-        fontSize: (theme.textTheme.headlineLarge?.fontSize ?? 30) * fontSizeScale,
+        fontSize:
+            (theme.textTheme.headlineLarge?.fontSize ?? 30) * fontSizeScale,
       ),
       h2: theme.textTheme.headlineMedium?.copyWith(
-        fontSize: (theme.textTheme.headlineMedium?.fontSize ?? 25) * fontSizeScale,
+        fontSize:
+            (theme.textTheme.headlineMedium?.fontSize ?? 25) * fontSizeScale,
       ),
       h3: theme.textTheme.headlineSmall?.copyWith(
-        fontSize: (theme.textTheme.headlineSmall?.fontSize ?? 22) * fontSizeScale,
+        fontSize:
+            (theme.textTheme.headlineSmall?.fontSize ?? 22) * fontSizeScale,
       ),
       h4: theme.textTheme.titleLarge?.copyWith(
         fontSize: (theme.textTheme.titleLarge?.fontSize ?? 20) * fontSizeScale,
@@ -204,10 +213,7 @@ class ClickableTextScrubber extends StatelessWidget {
       ),
       horizontalRuleDecoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: colorScheme.outlineVariant,
-            width: 1.0,
-          ),
+          top: BorderSide(color: colorScheme.outlineVariant, width: 1.0),
         ),
       ),
       tableHead: TextStyle(fontWeight: FontWeight.bold),
@@ -225,10 +231,11 @@ class ClickableTextScrubber extends StatelessWidget {
       return 'No content available.';
     }
 
-    String cleaned = data
-        .replaceAll('\x00', '')
-        .replaceAll(RegExp(r'[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]'), '')
-        .trim();
+    String cleaned =
+        data
+            .replaceAll('\x00', '')
+            .replaceAll(RegExp(r'[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]'), '')
+            .trim();
 
     cleaned = cleaned.replaceAll(RegExp(r'\r\n'), '\n').replaceAll('\r', '\n');
 
@@ -275,26 +282,31 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     // Only handle paragraph elements with no inline children
-    // If the element has inline children (bold, italic, links, etc.), 
+    // If the element has inline children (bold, italic, links, etc.),
     // use default processing to avoid assertion errors
     if (element.tag != 'p') {
       return super.visitElementAfter(element, preferredStyle);
     }
-    
+
     // Check if paragraph has inline children - if so, use default processing
-    final hasInlineChildren = element.children?.any((child) {
-      if (child is md.Element) {
-        final tag = child.tag;
-        return tag == 'em' || tag == 'strong' || tag == 'a' || tag == 'code';
-      }
-      return false;
-    }) ?? false;
-    
+    final hasInlineChildren =
+        element.children?.any((child) {
+          if (child is md.Element) {
+            final tag = child.tag;
+            return tag == 'em' ||
+                tag == 'strong' ||
+                tag == 'a' ||
+                tag == 'code';
+          }
+          return false;
+        }) ??
+        false;
+
     if (hasInlineChildren) {
       // Use default processing for paragraphs with inline elements
       return super.visitElementAfter(element, preferredStyle);
     }
-    
+
     final text = element.textContent;
     if (text.isEmpty) {
       // Return null to use default processing
@@ -321,7 +333,10 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
 
       // Add whitespace before word if needed
       if (wordStart > currentPosition) {
-        final whitespace = cleanedParagraph.substring(currentPosition, wordStart);
+        final whitespace = cleanedParagraph.substring(
+          currentPosition,
+          wordStart,
+        );
         textSpans.add(TextSpan(text: whitespace));
         globalOffset += whitespace.length;
       }
@@ -338,20 +353,17 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
 
       // Store word info for tap detection
       if (wordPosition != null) {
-        words.add(_WordInfo(
-          startOffset: globalOffset,
-          endOffset: globalOffset + word.length,
-          position: wordPosition,
-        ));
+        words.add(
+          _WordInfo(
+            startOffset: globalOffset,
+            endOffset: globalOffset + word.length,
+            position: wordPosition,
+          ),
+        );
       }
 
       // Create text span for word
-      textSpans.add(
-        TextSpan(
-          text: word,
-          style: style,
-        ),
-      );
+      textSpans.add(TextSpan(text: word, style: style));
 
       globalOffset += word.length;
       currentPosition = wordEnd;
@@ -364,13 +376,13 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
     }
 
     final textSpan = TextSpan(
-      style: preferredStyle != null ? preferredStyle.copyWith(
-        fontSize: (preferredStyle.fontSize ?? 18) * fontSizeScale,
-        height: 1.8,
-      ) : TextStyle(
-        fontSize: 18 * fontSizeScale,
-        height: 1.8,
-      ),
+      style:
+          preferredStyle != null
+              ? preferredStyle.copyWith(
+                fontSize: (preferredStyle.fontSize ?? 18) * fontSizeScale,
+                height: 1.8,
+              )
+              : TextStyle(fontSize: 18 * fontSizeScale, height: 1.8),
       children: textSpans,
     );
 
@@ -394,14 +406,18 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
 
   /// Find the position of a word in cleanText
   /// Returns the start position in cleanText, or null if not found
-  int? _findWordPositionInCleanText(String word, int wordIndexInParagraph, String paragraph) {
+  int? _findWordPositionInCleanText(
+    String word,
+    int wordIndexInParagraph,
+    String paragraph,
+  ) {
     // Try to find the paragraph's position in cleanText
     // Then add the word's offset within the paragraph
     final cleanedParagraph = _cleanParagraphText(paragraph);
-    
+
     // Find where this paragraph appears in cleanText
     int paragraphStart = -1;
-    
+
     // Search for the first few words of the paragraph to locate it
     final firstWords = cleanedParagraph.split(' ').take(3).join(' ');
     if (firstWords.isNotEmpty && firstWords.length <= cleanText.length) {
@@ -413,11 +429,13 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
         }
       }
     }
-    
+
     // If we found paragraph start, calculate word position
     if (paragraphStart != -1) {
       // Calculate word position within paragraph
-      final wordsBefore = cleanedParagraph.substring(0, wordIndexInParagraph).split(' ');
+      final wordsBefore = cleanedParagraph
+          .substring(0, wordIndexInParagraph)
+          .split(' ');
       int wordOffset = 0;
       for (final w in wordsBefore) {
         if (w.isNotEmpty) {
@@ -425,13 +443,18 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
         }
       }
       // Find the word in the paragraph starting from paragraphStart
-      final paragraphInCleanText = cleanText.substring(paragraphStart).substring(0, cleanedParagraph.length);
-      final wordIndexInCleanParagraph = paragraphInCleanText.indexOf(word, wordOffset - word.length);
+      final paragraphInCleanText = cleanText
+          .substring(paragraphStart)
+          .substring(0, cleanedParagraph.length);
+      final wordIndexInCleanParagraph = paragraphInCleanText.indexOf(
+        word,
+        wordOffset - word.length,
+      );
       if (wordIndexInCleanParagraph != -1) {
         return paragraphStart + wordIndexInCleanParagraph;
       }
     }
-    
+
     // Fallback: simple word search (may find wrong occurrence for common words)
     final index = cleanText.indexOf(word);
     return index != -1 ? index : null;
@@ -439,9 +462,12 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
 
   /// Get text style for a word based on reading state
   TextStyle _getWordStyle(int? wordStart, int wordLength) {
-    final baseStyle = theme.textTheme.bodyMedium?.copyWith(
-      fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
-    ) ?? const TextStyle();
+    final baseStyle =
+        theme.textTheme.bodyMedium?.copyWith(
+          fontSize:
+              (theme.textTheme.bodyMedium?.fontSize ?? 18) * fontSizeScale,
+        ) ??
+        const TextStyle();
 
     if (wordStart == null) {
       return baseStyle;
@@ -457,8 +483,10 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
       // Currently reading - highlight with primary color and background
       return baseStyle.copyWith(
         color: theme.colorScheme.primary,
-        backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
-        fontWeight: FontWeight.w500,
+        backgroundColor: theme.colorScheme.primaryContainer.withValues(
+          alpha: 0.5,
+        ),
+        fontWeight: FontWeight.w600,
       );
     }
 
@@ -474,7 +502,7 @@ class _ClickableParagraphBuilder extends MarkdownElementBuilder {
     if (isRead) {
       // Already read - muted color
       return baseStyle.copyWith(
-        color: theme.colorScheme.onSurface.withOpacity(0.6),
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
       );
     }
 
@@ -503,13 +531,15 @@ class _ClickableRichText extends StatelessWidget {
           text: textSpan,
           textDirection: TextDirection.ltr,
         );
-        
+
         return LayoutBuilder(
           builder: (context, constraints) {
             return GestureDetector(
               onTapDown: (details) {
                 textPainter.layout(maxWidth: constraints.maxWidth);
-                final position = textPainter.getPositionForOffset(details.localPosition);
+                final position = textPainter.getPositionForOffset(
+                  details.localPosition,
+                );
 
                 // Find which word was tapped based on character offset
                 for (final wordInfo in words) {

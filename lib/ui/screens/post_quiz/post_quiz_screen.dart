@@ -12,6 +12,7 @@ import 'package:safe_scales/services/user_state_service.dart';
 import '../../../providers/course_provider.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/question_widget.dart';
+import '../../widgets/tts_progress_bar.dart';
 import '../../widgets/voice_button.dart';
 import '../../../services/tts_service.dart';
 
@@ -40,7 +41,6 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
   late DateTime _quizStartTime;
   late DateTime _quizEndTime;
 
-
   late bool _isForward;
   bool _isFirstLoad = true;
 
@@ -60,18 +60,18 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
   String _buildQuestionTextForTTS(int questionIndex) {
     final question = widget.questionSet.questions[questionIndex];
     final buffer = StringBuffer();
-    
+
     buffer.write('Question: ${question.questionText}');
     if (question.text != null && question.text!.isNotEmpty) {
       buffer.write('. ${question.text}');
     }
     buffer.write('. Options: ');
-    
+
     for (int i = 0; i < question.options.length; i++) {
       final letter = String.fromCharCode(65 + i); // A, B, C, D...
       buffer.write('$letter) ${question.options[i]}. ');
     }
-    
+
     return buffer.toString();
   }
 
@@ -83,7 +83,6 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
   }
 
   void _finishPostQuiz() async {
-
     setState(() {
       _quizEndTime = DateTime.now();
     });
@@ -325,9 +324,10 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
               isAnswered
                   ? FontAwesomeIcons.solidCircleCheck
                   : FontAwesomeIcons.circle,
-              color: isAnswered
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outline,
+              color:
+                  isAnswered
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.outline,
             ),
             title: Text(
               'Q${index + 1}: ${widget.questionSet.questions[index].questionText}',
@@ -369,7 +369,9 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
             // Question widget
             Expanded(
               child: QuestionWidget(
-                key: ValueKey(widget.questionSet.questions[currentQuestionIndex].id),
+                key: ValueKey(
+                  widget.questionSet.questions[currentQuestionIndex].id,
+                ),
                 question: widget.questionSet.questions[currentQuestionIndex],
                 selectedAnswers: userAnswers[currentQuestionIndex],
                 onAnswerChanged: (answers) {
@@ -506,6 +508,14 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
                     : _isFirstLoad
                     ? _buildQuestionContent()
                     : _buildQuestionContent(),
+          ),
+
+          // TTS progress bar (hidden when stopped)
+          TtsProgressBar(
+            ttsService: _ttsService,
+            cleanText: TtsService.cleanTextForProgress(
+              _buildQuestionTextForTTS(currentQuestionIndex),
+            ),
           ),
 
           // Navigation

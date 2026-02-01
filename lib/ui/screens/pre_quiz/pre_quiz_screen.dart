@@ -10,6 +10,7 @@ import 'package:safe_scales/models/question.dart';
 import '../../../providers/course_provider.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/question_widget.dart';
+import '../../widgets/tts_progress_bar.dart';
 import '../../widgets/voice_button.dart';
 import '../../../services/tts_service.dart';
 
@@ -52,18 +53,18 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
   String _buildQuestionTextForTTS(int questionIndex) {
     final question = widget.questionSet.questions[questionIndex];
     final buffer = StringBuffer();
-    
+
     buffer.write('Question: ${question.questionText}');
     if (question.text != null && question.text!.isNotEmpty) {
       buffer.write('. ${question.text}');
     }
     buffer.write('. Options: ');
-    
+
     for (int i = 0; i < question.options.length; i++) {
       final letter = String.fromCharCode(65 + i); // A, B, C, D...
       buffer.write('$letter) ${question.options[i]}. ');
     }
-    
+
     return buffer.toString();
   }
 
@@ -75,7 +76,6 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
   }
 
   void _finishPreQuiz() async {
-
     setState(() {
       _quizEndTime = DateTime.now();
     });
@@ -90,7 +90,6 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
 
     // Save quiz progress
     try {
-
       await Provider.of<CourseProvider>(
         context,
         listen: false,
@@ -103,7 +102,6 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
         startTime: _quizStartTime,
         endTime: _quizEndTime,
       );
-
     } catch (e) {
       print('❌ Error saving pre-quiz progress: $e');
       // Continue to show results even if saving fails
@@ -204,7 +202,8 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
                         ? _nextQuestion
                         : null,
                 label: Text(
-                  currentQuestionIndex == widget.questionSet.questions.length - 1
+                  currentQuestionIndex ==
+                          widget.questionSet.questions.length - 1
                       ? 'Complete'
                       : 'Next',
                 ),
@@ -321,8 +320,11 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
                   // Question widget
                   Expanded(
                     child: QuestionWidget(
-                      key: ValueKey(widget.questionSet.questions[currentQuestionIndex].id),
-                      question: widget.questionSet.questions[currentQuestionIndex],
+                      key: ValueKey(
+                        widget.questionSet.questions[currentQuestionIndex].id,
+                      ),
+                      question:
+                          widget.questionSet.questions[currentQuestionIndex],
                       selectedAnswers: userAnswers[currentQuestionIndex],
                       onAnswerChanged: (answers) {
                         setState(() {
@@ -336,6 +338,13 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+
+          TtsProgressBar(
+            ttsService: _ttsService,
+            cleanText: TtsService.cleanTextForProgress(
+              _buildQuestionTextForTTS(currentQuestionIndex),
             ),
           ),
 
