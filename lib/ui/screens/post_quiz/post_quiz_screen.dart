@@ -350,9 +350,9 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
       padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
       child: Column(
         children: [
-          // Voice button for read aloud
+          // Voice button for read aloud (spacing matches image-at-top layout: 12 + 10)
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 22),
             child: VoiceButton(
               text: _buildQuestionTextForTTS(currentQuestionIndex),
               pageIndex: currentQuestionIndex,

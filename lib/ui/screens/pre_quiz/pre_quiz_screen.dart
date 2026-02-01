@@ -302,9 +302,9 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
               padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               child: Column(
                 children: [
-                  // Voice button for read aloud
+                  // Voice button for read aloud (spacing matches image-at-top layout)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.only(bottom: 22),
                     child: VoiceButton(
                       text: _buildQuestionTextForTTS(currentQuestionIndex),
                       pageIndex: currentQuestionIndex,
