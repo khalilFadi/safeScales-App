@@ -50,7 +50,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final ThemeData theme = Theme.of(context);
     final Color primary = theme.colorScheme.primary;
     final Color selected = primary;
-    final Color unselected = theme.colorScheme.surfaceContainerHighest;
+    final Color unselected = theme.colorScheme.primary.withValues(alpha: 0.5);
     final Color selectedText = theme.colorScheme.onPrimary;
     final Color unselectedText = primary;
 
@@ -114,7 +114,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                'ITEMS (${itemProvider.items.length})',
+                                'ITEMS (${itemProvider.items.length})'
+                                    .toUpperCase(),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color:
                                       selectedTab == 0
@@ -140,7 +141,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                'HABITATS (${itemProvider.environments.length})',
+                                'HABITATS (${itemProvider.environments.length})'
+                                    .toUpperCase(),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color:
                                       selectedTab == 1
