@@ -69,11 +69,8 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
   String getUserAnswerText(Question question, List<int> userAnswer) {
     if (userAnswer.isEmpty) {
       return 'Not answered';
-    }
-    else {
-      return userAnswer
-          .map((index) => question.options[index])
-          .join(', ');
+    } else {
+      return userAnswer.map((index) => question.options[index]).join(', ');
     }
   }
 
@@ -99,7 +96,7 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
                 'Question ${questionIndex + 1}',
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontSize: 15 * AppTheme.fontSizeScale,
-                )
+                ),
               ),
               const SizedBox(height: 10),
               StyledMarkdown(
@@ -108,21 +105,57 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
               ),
               const SizedBox(height: 10),
 
-              if (isMissed) ... [
-                StyledMarkdown(
-                  data: 'Your Answer: ${getUserAnswerText(question, userAnswer)}',
-                  fontSizeScale: AppTheme.fontSizeScale,
+              if (isMissed) ...[
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Your Answer: ',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 16 * AppTheme.fontSizeScale,
+                          color: theme.colorScheme.red,
+                        ),
+                      ),
+                      TextSpan(
+                        text: getUserAnswerText(question, userAnswer),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 16 * AppTheme.fontSizeScale,
+                          color: theme.colorScheme.red,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 5),
               ],
-              StyledMarkdown(
-                data: 'Correct Answer: ${question.correctAnswerIndices.map((index) => question.options[index]).join(', ')}',
-                fontSizeScale: AppTheme.fontSizeScale,
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Correct Answer: ',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 16 * AppTheme.fontSizeScale,
+                        color: theme.colorScheme.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: question.correctAnswerIndices
+                          .map((index) => question.options[index])
+                          .join(', '),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 16 * AppTheme.fontSizeScale,
+                        color: theme.colorScheme.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 5),
 
-              if (question.explanation.isNotEmpty) ... [
+              if (question.explanation.isNotEmpty) ...[
                 SizedBox(height: 10),
                 Container(
                   padding: EdgeInsets.all(15),
@@ -147,7 +180,7 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
                     ],
                   ),
                 ),
-              ]
+              ],
             ],
           ),
         ),
@@ -164,10 +197,7 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Text(
-            'Missed Questions',
-            style: theme.textTheme.headlineSmall,
-          ),
+          child: Text('Missed Questions', style: theme.textTheme.headlineSmall),
         ),
         SizedBox(height: 12),
 
@@ -217,18 +247,23 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
           shape: Border(),
           collapsedShape: Border(),
 
-          children: getCorrectQuestions().isEmpty ? [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              child: Text(
-                "No correct answers yet. Keep practicing!",
-                style: theme.textTheme.labelMedium
-              ),
-            ),
-          ]
-              : getCorrectQuestions().map((index) => buildQuestionCard(index, false)).toList(),
-
-
+          children:
+              getCorrectQuestions().isEmpty
+                  ? [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        "No correct answers yet. Keep practicing!",
+                        style: theme.textTheme.labelMedium,
+                      ),
+                    ),
+                  ]
+                  : getCorrectQuestions()
+                      .map((index) => buildQuestionCard(index, false))
+                      .toList(),
 
           // children: [
           //   ...List.generate(
@@ -249,7 +284,7 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
           // ],
         ),
 
-        SizedBox(height: 30,)
+        SizedBox(height: 30),
       ],
     );
   }

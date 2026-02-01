@@ -83,8 +83,8 @@ class _ReadingResultScreenState extends State<ReadingResultScreen> {
                     backgroundColor: theme.colorScheme.secondary,
                     foregroundColor: theme.colorScheme.onSecondary,
                   ),
-                      : Text(
                   child: Text(
+                    'Return to lesson'.toUpperCase(),
                     style: TextStyle(
                       fontSize: theme.textTheme.bodyMedium?.fontSize,
                     ),

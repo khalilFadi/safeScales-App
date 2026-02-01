@@ -345,47 +345,45 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
     );
   }
 
-  Expanded _buildQuestionContent() {
-    return Expanded(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-        child: Column(
-          children: [
-            // Voice button for read aloud
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: VoiceButton(
-                text: _buildQuestionTextForTTS(currentQuestionIndex),
-                pageIndex: currentQuestionIndex,
-                size: 35,
-                onStateChanged: () {
-                  setState(() {
-                    // Trigger rebuild to update UI state
-                  });
-                },
-                margin: EdgeInsets.zero,
-              ),
+  Widget _buildQuestionContent() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      child: Column(
+        children: [
+          // Voice button for read aloud
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: VoiceButton(
+              text: _buildQuestionTextForTTS(currentQuestionIndex),
+              pageIndex: currentQuestionIndex,
+              size: 35,
+              onStateChanged: () {
+                setState(() {
+                  // Trigger rebuild to update UI state
+                });
+              },
+              margin: EdgeInsets.zero,
             ),
-            // Question widget
-            Expanded(
-              child: QuestionWidget(
-                key: ValueKey(
-                  widget.questionSet.questions[currentQuestionIndex].id,
-                ),
-                question: widget.questionSet.questions[currentQuestionIndex],
-                selectedAnswers: userAnswers[currentQuestionIndex],
-                onAnswerChanged: (answers) {
-                  setState(() {
-                    userAnswers[currentQuestionIndex] = answers;
-                  });
-                },
-                showCorrectAnswer: widget.questionSet.showCorrectAnswers,
-                showExplanation: widget.questionSet.showExplanations,
-                isResponseLocked: false,
+          ),
+          // Question widget
+          Expanded(
+            child: QuestionWidget(
+              key: ValueKey(
+                widget.questionSet.questions[currentQuestionIndex].id,
               ),
+              question: widget.questionSet.questions[currentQuestionIndex],
+              selectedAnswers: userAnswers[currentQuestionIndex],
+              onAnswerChanged: (answers) {
+                setState(() {
+                  userAnswers[currentQuestionIndex] = answers;
+                });
+              },
+              showCorrectAnswer: widget.questionSet.showCorrectAnswers,
+              showExplanation: widget.questionSet.showExplanations,
+              isResponseLocked: false,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
