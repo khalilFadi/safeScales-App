@@ -14,18 +14,13 @@ class _ReadingResultScreenState extends State<ReadingResultScreen> {
   bool _isNavigating = false;
 
   void _handleReturnToLesson() {
-    // Prevent multiple taps
+    // Prevent multiple taps - use sync flag only (no setState before pop)
+    // setState before Navigator.pop can cause race conditions where the widget
+    // is disposed during a scheduled rebuild, leading to inconsistent behavior
     if (_isNavigating || !mounted) return;
-    
-    setState(() {
-      _isNavigating = true;
-    });
-    
-    // Pop immediately after setting state
-    // The mounted check ensures we don't pop if widget is disposed
-    if (mounted) {
-      Navigator.pop(context, true);
-    }
+    _isNavigating = true;
+
+    Navigator.pop(context, true);
   }
 
   @override
@@ -88,23 +83,12 @@ class _ReadingResultScreenState extends State<ReadingResultScreen> {
                     backgroundColor: theme.colorScheme.secondary,
                     foregroundColor: theme.colorScheme.onSecondary,
                   ),
-                  child: _isNavigating
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              theme.colorScheme.onSecondary,
-                            ),
-                          ),
-                        )
                       : Text(
-                          'Return to lesson'.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: theme.textTheme.bodyMedium?.fontSize,
-                          ),
-                        ),
+                  child: Text(
+                    style: TextStyle(
+                      fontSize: theme.textTheme.bodyMedium?.fontSize,
+                    ),
+                  ),
                 ),
               ),
             ],

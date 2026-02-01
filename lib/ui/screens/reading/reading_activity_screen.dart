@@ -143,14 +143,12 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
   }
 
   Future<void> _markAsCompleted() async {
-    // Prevent multiple calls
+    // Prevent multiple calls - set flag synchronously before any async work
+    // to close the race window where a second tap could get through
     if (_isCompleting || _isCompleted) return;
-
     if (!mounted) return;
-
-    setState(() {
-      _isCompleting = true;
-    });
+    _isCompleting = true;
+    setState(() {});
 
     try {
       // Save progress immediately when reading is completed
@@ -186,7 +184,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
         });
 
         // Navigate to results screen and wait for it to return
-        final shouldPopReading = await Navigator.push(
+        final shouldPopReading = await Navigator.push<bool>(
           context,
           MaterialPageRoute(
             builder:
