@@ -236,9 +236,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              selectedTab == 0
-                  ? 'Complete review sets from the shop page to earn items and habitats'
-                  : 'Complete lessons and quizzes to unlock beautiful habitats!',
+              'Complete review sets from the shop page to earn items and habitats',
               style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
