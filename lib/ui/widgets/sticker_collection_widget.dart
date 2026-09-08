@@ -17,16 +17,10 @@ class StickerCollectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
     ColorScheme colorScheme = theme.colorScheme;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(
-        top: 20,
-        bottom: 20 + bottomPadding,
-        left: 20,
-        right: 20,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh,
         borderRadius: const BorderRadius.only(
@@ -41,121 +35,127 @@ class StickerCollectionWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Text(
-            'Long press items to drag them onto your dragon',
-            style: theme.textTheme.labelSmall,
-          ),
-          const SizedBox(height: 10),
-          _isLoadingAccessories
-              ? const Center(child: CircularProgressIndicator())
-              : userAccessories.isEmpty
-              ? GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ShopScreen(),
-                ),
-              );
-            },
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.shopping_bag_outlined,
-                    size: 48,
-                    color: colorScheme.primary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'No items yet.\nTap to visit the shop!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 5),
-                ],
-              ),
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Long press items to drag them onto your dragon',
+              style: theme.textTheme.labelSmall,
             ),
-          )
-              : LayoutBuilder(
-            builder: (context, constraints) {
-              // Make height responsive based on screen size
-              final screenHeight = MediaQuery.of(context).size.height;
-              final gridHeight = (screenHeight * 0.12).clamp(85.0, 120.0);
-              return SizedBox(
-                height: gridHeight,
-                child: GridView.builder(
-              scrollDirection: Axis.vertical,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5, // 4 items per row
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1, // Square items
-              ),
-              itemCount: userAccessories.length,
-              itemBuilder: (context, index) {
-                final item = userAccessories[index];
-                return
-                  LongPressDraggable<Map<String, dynamic>>(
-                    data: {
-                      'id': item.id,
-                      'image': item.imageUrl,
-                      'name': item.name,
-                    },
-                    feedback: Material(
-                      color: Colors.transparent,
-                      child: Image.network(
-                        item.imageUrl,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.contain,
+            const SizedBox(height: 10),
+            _isLoadingAccessories
+                ? const Center(child: CircularProgressIndicator())
+                : userAccessories.isEmpty
+                ? GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ShopScreen(),
                       ),
-                    ),
-                    childWhenDragging: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Image.network(
-                        item.imageUrl,
-                        width: 36,
-                        height: 36,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colorScheme.primary.withValues(
-                            alpha: 0.3,
-                          ),
-                          width: 2,
+                    );
+                  },
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 48,
+                          color: colorScheme.primary.withValues(alpha: 0.5),
                         ),
-                      ),
-                      child: Image.network(
-                        item.imageUrl,
-                        width: 36,
-                        height: 36,
-                        fit: BoxFit.contain,
-                      ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'No items yet.\nTap to visit the shop!',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 5),
+                      ],
                     ),
-                  );
-              },
-            ),
-              );
-            },
-          ),
-          const SizedBox(height: 15),
-        ],
+                  ),
+                )
+                : LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Make height responsive based on screen size
+                    final screenHeight = MediaQuery.of(context).size.height;
+                    final gridHeight = (screenHeight * 0.12).clamp(85.0, 120.0);
+                    return SizedBox(
+                      height: gridHeight,
+                      child: GridView.builder(
+                        scrollDirection: Axis.vertical,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 5, // 4 items per row
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1, // Square items
+                            ),
+                        itemCount: userAccessories.length,
+                        itemBuilder: (context, index) {
+                          final item = userAccessories[index];
+                          return LongPressDraggable<Map<String, dynamic>>(
+                            data: {
+                              'id': item.id,
+                              'image': item.imageUrl,
+                              'name': item.name,
+                            },
+                            feedback: Material(
+                              color: Colors.transparent,
+                              child: Image.network(
+                                item.imageUrl,
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            childWhenDragging: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.outline.withValues(
+                                  alpha: 0.3,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Image.network(
+                                item.imageUrl,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  width: 2,
+                                ),
+                              ),
+                              child: Image.network(
+                                item.imageUrl,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+          ],
+        ),
       ),
     );
   }
