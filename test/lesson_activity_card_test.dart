@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:safe_scales/themes/app_theme.dart';
 import 'package:safe_scales/ui/widgets/lesson_activity_card.dart';
 
 Widget _wrap(Widget child) {
@@ -17,7 +15,7 @@ void main() {
         LessonActivityCard(
           title: 'Reading',
           description: 'Learn about Social Media Norms',
-          icon: FontAwesomeIcons.fileLines,
+          icon: Icons.description,
           status: LessonActivityStatus.active,
           onTap: () {},
         ),
@@ -38,7 +36,7 @@ void main() {
         LessonActivityCard(
           title: 'Reading',
           description: 'Learn about Social Media Norms',
-          icon: FontAwesomeIcons.fileLines,
+          icon: Icons.description,
           status: LessonActivityStatus.completed,
           onTap: () {},
         ),
@@ -58,7 +56,7 @@ void main() {
           .first,
     );
     final decoration = container.decoration as BoxDecoration;
-    expect(decoration.color, AppColors.paleGreen);
+    expect(decoration.color, const Color(0xffDCFCE7));
   });
 
   testWidgets('locked activity shows lock instead of chevron', (tester) async {
@@ -67,7 +65,7 @@ void main() {
         LessonActivityCard(
           title: 'Quiz',
           description: 'Test what you\'ve learned',
-          icon: FontAwesomeIcons.penRuler,
+          icon: Icons.quiz,
           status: LessonActivityStatus.locked,
           onTap: () {},
         ),

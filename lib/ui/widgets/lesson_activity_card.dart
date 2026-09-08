@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import '../../themes/app_theme.dart';
 
 enum LessonActivityStatus { locked, active, completed }
 
@@ -23,6 +20,9 @@ class LessonActivityCard extends StatelessWidget {
   final LessonActivityStatus status;
   final VoidCallback onTap;
 
+  static const Color _paleGreen = Color(0xffDCFCE7);
+  static const Color _green = Color(0xff0DB563);
+
   bool get _isCompleted => status == LessonActivityStatus.completed;
   bool get _isLocked => status == LessonActivityStatus.locked;
   bool get _isActive => status == LessonActivityStatus.active;
@@ -37,7 +37,7 @@ class LessonActivityCard extends StatelessWidget {
 
     final Color background =
         _isCompleted
-            ? theme.colorScheme.paleGreen
+            ? _paleGreen
             : _isLocked
             ? theme.colorScheme.surfaceContainer
             : theme.colorScheme.surfaceBright;
@@ -46,15 +46,12 @@ class LessonActivityCard extends StatelessWidget {
         _isActive
             ? Border.all(color: theme.colorScheme.primary, width: 1)
             : _isCompleted
-            ? Border.all(
-              color: theme.colorScheme.green.withValues(alpha: 0.35),
-              width: 1,
-            )
+            ? Border.all(color: _green.withValues(alpha: 0.35), width: 1)
             : null;
 
     final Color iconTileColor =
         _isCompleted
-            ? theme.colorScheme.green
+            ? _green
             : _isLocked
             ? muted.withValues(alpha: 0.25)
             : theme.colorScheme.primary.withValues(alpha: 0.12);
@@ -93,8 +90,8 @@ class LessonActivityCard extends StatelessWidget {
                   ),
                   alignment: Alignment.center,
                   child: Icon(
-                    _isCompleted ? FontAwesomeIcons.check : icon,
-                    size: _isCompleted ? 18 : 20,
+                    _isCompleted ? Icons.check : icon,
+                    size: _isCompleted ? 22 : 20,
                     color: iconColor,
                     key: Key(
                       _isCompleted
@@ -127,10 +124,8 @@ class LessonActivityCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Icon(
-                  _isLocked
-                      ? FontAwesomeIcons.lock
-                      : FontAwesomeIcons.chevronRight,
-                  size: _isLocked ? 16 : 14,
+                  _isLocked ? Icons.lock : Icons.chevron_right,
+                  size: _isLocked ? 20 : 22,
                   color: muted,
                   key: Key(
                     _isLocked
