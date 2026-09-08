@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:safe_scales/models/question.dart';
 
 /// Shared pre-quiz / post-quiz intro: title card, Details, and START.
@@ -217,7 +216,7 @@ class _InstructionsCard extends StatelessWidget {
         children: [
           if (showTableOfContentsHint)
             const _InstructionRow(
-              icon: FontAwesomeIcons.list,
+              icon: Icons.list,
               text:
                   'You can use the table of contents to return to previous questions',
             ),
@@ -227,7 +226,7 @@ class _InstructionsCard extends StatelessWidget {
               color: theme.colorScheme.outlineVariant,
             ),
           const _InstructionRow(
-            icon: FontAwesomeIcons.volumeHigh,
+            icon: Icons.volume_up,
             text:
                 'You can use the audio feature to listen to the question instead of reading.',
           ),
@@ -255,7 +254,7 @@ class _InstructionRow extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: FaIcon(icon, size: 16, color: iconColor),
+            child: Icon(icon, size: 18, color: iconColor),
           ),
           const SizedBox(width: 12),
           Expanded(child: Text(text)),
