@@ -10,8 +10,8 @@ import 'package:safe_scales/ui/screens/reading/reading_activity_screen.dart';
 import '../../../models/lesson.dart';
 import '../../../providers/course_provider.dart';
 import '../../../providers/dragon_provider.dart';
-import '../../../themes/app_theme.dart';
 import '../../widgets/dragon_image_widget.dart';
+import '../../widgets/lesson_activity_card.dart';
 import '../review_set/review_screen.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -25,9 +25,9 @@ class LessonScreen extends StatefulWidget {
 }
 
 class _LessonScreenState extends State<LessonScreen> {
-  Lesson? _lesson; // Make nullable
-  LessonProgress? _lessonProgress; // Make nullable
-  bool _isLoading = true; // Add loading state
+  Lesson? _lesson;
+  LessonProgress? _lessonProgress;
+  bool _isLoading = true;
 
   bool _initialized = false;
 
@@ -45,7 +45,6 @@ class _LessonScreenState extends State<LessonScreen> {
 
     final courseProvider = Provider.of<CourseProvider>(context, listen: false);
 
-    // Check if provider is initialized
     if (!courseProvider.isInitialized) {
       await courseProvider.initialize();
     }
@@ -55,13 +54,10 @@ class _LessonScreenState extends State<LessonScreen> {
       _lessonProgress = courseProvider.lessonProgress[widget.moduleId];
     });
 
-    // If either lesson or progress is null, show error
     if (_lesson == null || _lessonProgress == null) {
       if (mounted) {
-        // Schedule the SnackBar to show after the current frame
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            // Check mounted again as this runs later
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -87,17 +83,40 @@ class _LessonScreenState extends State<LessonScreen> {
     }
   }
 
+  LessonActivityStatus _activityStatus({
+    required bool isCompleted,
+    required bool isUnlocked,
+  }) {
+    if (isCompleted) return LessonActivityStatus.completed;
+    if (!isUnlocked) return LessonActivityStatus.locked;
+    return LessonActivityStatus.active;
+  }
+
+  void _showLockedMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onInverseSurface,
+          ),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.inverseSurface,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
-    final screenSize = MediaQuery.of(context).size;
-
-    final double statBoxWidth = 155;
+    final theme = Theme.of(context);
 
     return Consumer2<DragonProvider, CourseProvider>(
       builder: (context, dragonProvider, courseProvider, child) {
-        // Show loading if data is not ready
-        if (_isLoading || _lesson == null || _lessonProgress == null) {
+        final lesson = courseProvider.lessons[widget.moduleId] ?? _lesson;
+        final lessonProgress =
+            courseProvider.lessonProgress[widget.moduleId] ?? _lessonProgress;
+
+        if (_isLoading || lesson == null || lessonProgress == null) {
           return Scaffold(
             appBar: AppBar(
               title: Text(widget.topic ?? 'Loading...'),
@@ -107,550 +126,340 @@ class _LessonScreenState extends State<LessonScreen> {
           );
         }
 
+        final nextLesson = courseProvider.getNextLesson(widget.moduleId);
+        final activitiesComplete = lessonProgress.areAllActivitiesComplete;
+        final completedCount = lessonProgress.completedActivityCount;
+        final totalCount = LessonProgress.totalActivities;
+        final bestQuiz = lessonProgress.getHighestPostQuizScore();
+
+        final dragon = dragonProvider.getDragonByModuleId(widget.moduleId);
+        final phaseName =
+            dragon == null
+                ? ''
+                : dragonProvider.getPhaseDisplayName(
+                  dragonProvider.getDragonHighestPhase(dragon.id),
+                );
+
         return Scaffold(
           appBar: AppBar(
-            title: Text(widget.topic ?? _lesson!.title),
+            title: Text(widget.topic ?? lesson.title),
             centerTitle: true,
           ),
           body:
               courseProvider.isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 10),
-                      // Dragon image container
-                      Center(child: _getDragonImage(dragonProvider)),
-
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                          top: 20,
+                  : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildGrowthCard(
+                          theme: theme,
+                          phaseName: phaseName,
+                          completedCount: completedCount,
+                          totalCount: totalCount,
+                          bestQuizPercent: bestQuiz,
                         ),
-                        child: Text(
-                          'Post Quiz Scores',
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                          top: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: statBoxWidth,
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer
-                                    .withValues(
-                                      alpha: 0.1,
-                                    ), //Colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.timer,
-                                        color: theme.colorScheme.primary,
-                                        size: 15,
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        "Most Recent",
-                                        style: theme.textTheme.labelSmall,
-                                      ),
-                                      SizedBox(width: 10),
-                                      Icon(
-                                        Icons.timer,
-                                        color: theme.colorScheme.primary,
-                                        size: 15,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    "${_lessonProgress?.getMostRecentPostQuizScore().toInt()}%",
-                                    style: theme.textTheme.headlineSmall
-                                        ?.copyWith(fontSize: 15),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(width: 40),
-
-                            Container(
-                              width: statBoxWidth,
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer
-                                    .withValues(
-                                      alpha: 0.1,
-                                    ), //Colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.star,
-                                        color: theme.colorScheme.primary,
-                                        size: 15,
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        "Highest",
-                                        style: theme.textTheme.labelSmall,
-                                      ),
-                                      SizedBox(width: 10),
-                                      Icon(
-                                        Icons.star,
-                                        color: theme.colorScheme.primary,
-                                        size: 15,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    "${_lessonProgress?.getHighestPostQuizScore().toInt()}%",
-                                    style: theme.textTheme.headlineSmall
-                                        ?.copyWith(fontSize: 15),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                          top: 20,
-                        ),
-                        child: Text(
+                        const SizedBox(height: 24),
+                        Text(
                           'Lesson Activities',
                           style: theme.textTheme.headlineSmall,
                         ),
-                      ),
-
-                      // Existing content
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ...[
-                                _buildQuizCard(
-                                  // type: ActivityType.preQuiz,
-                                  title: 'Pre-Quiz',
-                                  description:
-                                      'Test your knowledge before starting',
-                                  onTap: () => _startQuiz(_lesson!.preQuiz),
-                                  icon: Icons.quiz,
-                                  color: theme.colorScheme.primary,
-                                  isCompleted:
-                                      _lessonProgress!.isPreQuizComplete,
-                                  score:
-                                      _lessonProgress!.preQuizAttempt?.score ??
-                                      0.0,
-                                  isUnlocked:
-                                      !_lessonProgress!
-                                          .isPreQuizComplete, // Only unlock when the pre-quiz is not completed, lock after
-                                ),
-                                const SizedBox(height: 20),
-                              ],
-                              _buildReadingCard(
-                                isUnlocked: _lessonProgress!.isPreQuizComplete,
-                              ),
-                              ...[
-                                const SizedBox(height: 20),
-                                _buildQuizCard(
-                                  title: 'Post-Quiz',
-                                  description: 'Test what you\'ve learned',
-                                  onTap: () => _startQuiz(_lesson!.postQuiz),
-                                  icon: FontAwesomeIcons.penRuler,
-                                  color: theme.colorScheme.primary,
-                                  isCompleted:
-                                      _lessonProgress!.isPostQuizComplete(),
-                                  score:
-                                      _lessonProgress!
-                                              .postQuizAttempts
-                                              .isNotEmpty
-                                          ? _lessonProgress!
-                                              .postQuizAttempts
-                                              .last
-                                              .score
-                                          : null,
-                                  isUnlocked:
-                                      _lessonProgress!.isReadingComplete,
-                                ),
-                              ],
-                              ...[
-                                const SizedBox(height: 20),
-                                _buildReviewCard(
-                                  isUnlocked:
-                                      _lessonProgress!.isPostQuizComplete(),
-                                ),
-                              ],
-                            ],
+                        const SizedBox(height: 12),
+                        LessonActivityCard(
+                          key: const Key('activity-card-pre-quiz'),
+                          title: 'Pre-Quiz',
+                          description: 'Test your knowledge before starting',
+                          icon: FontAwesomeIcons.clipboardQuestion,
+                          status: _activityStatus(
+                            isCompleted: lessonProgress.isPreQuizComplete,
+                            isUnlocked: true,
                           ),
+                          onTap: () {
+                            if (lessonProgress.isPreQuizComplete) {
+                              _showLockedMessage(
+                                'Pre-Quiz has already been completed',
+                              );
+                              return;
+                            }
+                            _startQuiz(lesson.preQuiz);
+                          },
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        LessonActivityCard(
+                          key: const Key('activity-card-reading'),
+                          title: 'Reading',
+                          description:
+                              'Learn about ${widget.topic ?? lesson.title}',
+                          icon: FontAwesomeIcons.fileLines,
+                          status: _activityStatus(
+                            isCompleted: lessonProgress.isReadingComplete,
+                            isUnlocked: lessonProgress.isPreQuizComplete,
+                          ),
+                          onTap: () {
+                            if (!lessonProgress.isPreQuizComplete) {
+                              _showLockedMessage(
+                                'Please complete the Pre-Quiz activity first',
+                              );
+                              return;
+                            }
+                            _openReading();
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        LessonActivityCard(
+                          key: const Key('activity-card-quiz'),
+                          title: 'Quiz',
+                          description: 'Test what you\'ve learned',
+                          icon: FontAwesomeIcons.penRuler,
+                          status: _activityStatus(
+                            isCompleted: lessonProgress.isPostQuizComplete(),
+                            isUnlocked: lessonProgress.isReadingComplete,
+                          ),
+                          onTap: () {
+                            if (!lessonProgress.isReadingComplete) {
+                              _showLockedMessage(
+                                'Please complete the Reading activity first',
+                              );
+                              return;
+                            }
+                            _startQuiz(lesson.postQuiz);
+                          },
+                        ),
+                        const SizedBox(height: 28),
+                        _buildFooterActions(
+                          theme: theme,
+                          activitiesComplete: activitiesComplete,
+                          nextLesson: nextLesson,
+                        ),
+                      ],
+                    ),
                   ),
         );
       },
     );
   }
 
-  Widget _buildQuizCard({
-    required String title,
-    required String description,
-    required VoidCallback onTap,
-    required IconData icon,
-    required Color color,
-    required bool isCompleted,
-    required bool isUnlocked,
-    double? score,
+  Widget _buildGrowthCard({
+    required ThemeData theme,
+    required String phaseName,
+    required int completedCount,
+    required int totalCount,
+    required double bestQuizPercent,
   }) {
-    ThemeData theme = Theme.of(context);
-
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:
-            isCompleted
-                ? theme.colorScheme.green.withValues(alpha: 0.1)
-                : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color:
-              isCompleted
-                  ? theme.colorScheme.green
-                  : color.withValues(alpha: 0.5),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: theme.colorScheme.surfaceBright,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            child: Row(
+      child: Row(
+        children: [
+          DragonImageWidget(moduleId: widget.moduleId, size: 88),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: color.withValues(alpha: 0.1),
-                  child: Icon(
-                    isCompleted ? Icons.check_circle : icon,
-                    size: 20,
-                    color: isCompleted ? theme.colorScheme.green : color,
+                if (phaseName.isNotEmpty)
+                  Text(
+                    phaseName,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontSize: 20,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontSize: 18,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('Progress', style: theme.textTheme.labelMedium),
+                    const SizedBox(width: 8),
+                    ...List.generate(totalCount, (index) {
+                      final filled = index < completedCount;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color:
+                                filled
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.outlineVariant,
+                          ),
                         ),
-                      ),
-
-                      const SizedBox(height: 5),
-                      Text(description, style: theme.textTheme.labelSmall),
-                    ],
+                      );
+                    }),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$completedCount/$totalCount',
+                      style: theme.textTheme.labelMedium,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    bestQuizPercent > 0
+                        ? 'Best Quiz: ${bestQuizPercent.toInt()}%'
+                        : 'Best Quiz: --',
+                    style: theme.textTheme.labelSmall,
                   ),
                 ),
-                const SizedBox(width: 15),
-                if (!isUnlocked)
-                  Image.asset(
-                    'assets/images/other/lock.png',
-                    width: 40,
-                    height: 40,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  )
-                else
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 15,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildReadingCard({required bool isUnlocked}) {
-    ThemeData theme = Theme.of(context);
-    final Color cardBg = theme.colorScheme.surface;
-    final Color textColor = theme.colorScheme.onSurface;
-    final Color primary = theme.colorScheme.primary;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      decoration: BoxDecoration(
-        color:
-            _lessonProgress!.isReadingComplete
-                ? theme.colorScheme.green.withValues(alpha: 0.1)
-                : cardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color:
-              _lessonProgress!.isReadingComplete
-                  ? theme.colorScheme.green
-                  : primary.withValues(alpha: 0.5),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+  Widget _buildFooterActions({
+    required ThemeData theme,
+    required bool activitiesComplete,
+    required Lesson? nextLesson,
+  }) {
+    if (!activitiesComplete) {
+      return Column(
+        children: [
+          Text(
+            'Complete all activities to unlock the next lesson and review.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _lockedFooterButton(
+            theme: theme,
+            icon: FontAwesomeIcons.graduationCap,
+            label: 'Next Lesson',
+          ),
+          const SizedBox(height: 12),
+          _lockedFooterButton(
+            theme: theme,
+            icon: FontAwesomeIcons.clipboardList,
+            label: 'Review this Lesson',
           ),
         ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap:
-              _lessonProgress!.isPreQuizComplete
-                  ? () {
-                    // Navigate to reading activity screen
-                    setState(() {
-                      _isLoading = true; // Show loading state
-                    });
+      );
+    }
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ReadingActivityScreen(
-                              moduleId: widget.moduleId,
-                            ),
-                      ),
-                    ).then((completed) async {
-                      if (completed == true) {
-                        // Show loading overlay
-                        if (mounted) {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return Center(
-                                child: Container(
-                                  padding: const EdgeInsets.all(32),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(context).colorScheme.surface,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: theme.colorScheme.shadow
-                                            .withOpacity(0.1),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // Title and close button row
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              'Updating progress...',
-                                              style:
-                                                  Theme.of(
-                                                    context,
-                                                  ).textTheme.bodyLarge,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.close),
-                                            onPressed:
-                                                () =>
-                                                    Navigator.of(context).pop(),
-                                            padding: EdgeInsets.zero,
-                                            constraints: BoxConstraints(),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      const CircularProgressIndicator(),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        }
-
-                        try {
-                          final courseProvider = Provider.of<CourseProvider>(
-                            context,
-                            listen: false,
-                          );
-                          await courseProvider.loadSingleLessonProgress(
-                            widget.moduleId,
-                          );
-
-                          await Provider.of<DragonProvider>(
-                            context,
-                            listen: false,
-                          ).updateAllDragonProgress();
-
-                          if (mounted) {
-                            setState(() {
-                              _lessonProgress =
-                                  courseProvider.lessonProgress[widget
-                                      .moduleId];
-                              _isLoading = false;
-                            });
-                            // Close loading dialog
-                            Navigator.of(context).pop();
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            // Close loading dialog
-                            Navigator.of(context).pop();
-                            // Show error snackbar
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error updating progress: $e'),
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.error,
-                              ),
-                            );
-                          }
-                        }
-                      } else {
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }
-                    });
-                  }
-                  : () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Please complete the Pre-Quiz activity first',
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onInverseSurface,
-                          ),
-                        ),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.inverseSurface,
-                      ),
-                    );
-                    return;
-                  },
-          borderRadius: BorderRadius.circular(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      children: [
+        if (nextLesson != null) ...[
+          _primaryNextLessonButton(theme: theme, nextLesson: nextLesson),
+          const SizedBox(height: 16),
+          Row(
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: primary.withValues(alpha: 0.1),
-                    child: Icon(
-                      _lessonProgress!.isReadingComplete
-                          ? Icons.check_circle
-                          : FontAwesomeIcons.book,
-                      size: 20,
-                      color:
-                          _lessonProgress!.isReadingComplete
-                              ? theme.colorScheme.green
-                              : primary,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Reading Activity',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontSize: 18,
-                          ),
-                        ),
+              Expanded(child: Divider(color: theme.colorScheme.outlineVariant)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text('OR', style: theme.textTheme.labelSmall),
+              ),
+              Expanded(child: Divider(color: theme.colorScheme.outlineVariant)),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+        _reviewLessonButton(theme: theme),
+      ],
+    );
+  }
 
-                        const SizedBox(height: 5),
+  Widget _lockedFooterButton({
+    required ThemeData theme,
+    required IconData icon,
+    required String label,
+  }) {
+    final muted = theme.colorScheme.onSurfaceVariant;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: muted),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontSize: 16,
+                color: muted,
+              ),
+            ),
+          ),
+          Icon(FontAwesomeIcons.lock, size: 16, color: muted),
+        ],
+      ),
+    );
+  }
 
-                        Text(
-                          'Learn about ${widget.topic ?? _lesson!.title}',
-                          style: theme.textTheme.labelSmall,
-                        ),
-                      ],
+  Widget _primaryNextLessonButton({
+    required ThemeData theme,
+    required Lesson nextLesson,
+  }) {
+    return Material(
+      color: theme.colorScheme.primary,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LessonScreen(moduleId: nextLesson.lessonId),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Icon(
+                FontAwesomeIcons.graduationCap,
+                size: 18,
+                color: theme.colorScheme.onPrimary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Next Lesson',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontSize: 16,
+                        color: theme.colorScheme.onPrimary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  if (!isUnlocked)
-                    Image.asset(
-                      'assets/images/other/lock.png',
-                      width: 40,
-                      height: 40,
-                      color: textColor.withValues(alpha: 0.5),
-                    )
-                  else
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 15,
-                      color: textColor.withValues(alpha: 0.5),
+                    Text(
+                      nextLesson.title,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                      ),
                     ),
-                ],
+                  ],
+                ),
+              ),
+              Icon(
+                FontAwesomeIcons.chevronRight,
+                size: 14,
+                color: theme.colorScheme.onPrimary,
               ),
             ],
           ),
@@ -659,115 +468,151 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 
-  Widget _buildReviewCard({required bool isUnlocked}) {
-    ThemeData theme = Theme.of(context);
-    final Color cardBg = theme.colorScheme.surface;
-    final Color textColor = theme.colorScheme.onSurface;
-    final Color primary = theme.colorScheme.primary;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      decoration: BoxDecoration(
-        color:
-            cardBg, //_lessonProgress!.isPostQuizComplete() ? theme.colorScheme.green.withValues(alpha: 0.1) : cardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: primary.withValues(
-            alpha: 0.5,
-          ), //_lessonProgress!.isPostQuizComplete ? theme.colorScheme.green : primary.withValues(alpha: 0.5),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  Widget _reviewLessonButton({required ThemeData theme}) {
+    return Material(
+      color: theme.colorScheme.surfaceBright,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.primary, width: 1),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap:
-              _lessonProgress!.isPostQuizComplete()
-                  ? () async {
-                    await _startReviewSet(widget.moduleId);
-                  }
-                  : () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Please complete the Post-Quiz activity first',
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onInverseSurface,
-                          ),
-                        ),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.inverseSurface,
-                      ),
-                    );
-                    return;
-                  },
-          borderRadius: BorderRadius.circular(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: InkWell(
+        onTap: () async {
+          await _startReviewSet(widget.moduleId);
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: primary.withValues(alpha: 0.1),
-                    child: Icon(
-                      FontAwesomeIcons.repeat,
-                      size: 20,
-                      color: primary,
-                    ),
+              Icon(
+                FontAwesomeIcons.clipboardList,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Review this Lesson',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontSize: 16,
+                    color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Review Set',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'Complete review questions and earn an item for your dragon',
-                          style: theme.textTheme.labelSmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  if (!isUnlocked)
-                    Image.asset(
-                      'assets/images/other/lock.png',
-                      width: 40,
-                      height: 40,
-                      color: textColor.withValues(alpha: 0.5),
-                    )
-                  else
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 15,
-                      color: textColor.withValues(alpha: 0.5),
-                    ),
-                ],
+                ),
+              ),
+              Icon(
+                FontAwesomeIcons.chevronRight,
+                size: 14,
+                color: theme.colorScheme.primary,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _openReading() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReadingActivityScreen(moduleId: widget.moduleId),
+      ),
+    ).then((completed) async {
+      if (completed == true) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.shadow.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Updating progress...',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const CircularProgressIndicator(),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        try {
+          final courseProvider = Provider.of<CourseProvider>(
+            context,
+            listen: false,
+          );
+          await courseProvider.loadSingleLessonProgress(widget.moduleId);
+
+          await Provider.of<DragonProvider>(
+            context,
+            listen: false,
+          ).updateAllDragonProgress();
+
+          if (mounted) {
+            setState(() {
+              _lessonProgress = courseProvider.lessonProgress[widget.moduleId];
+              _isLoading = false;
+            });
+            Navigator.of(context).pop();
+          }
+        } catch (e) {
+          if (mounted) {
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error updating progress: $e'),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    });
   }
 
   Future<void> _startReviewSet(String lessonId) async {
@@ -777,13 +622,11 @@ class _LessonScreenState extends State<LessonScreen> {
         listen: false,
       );
 
-      // Get the review question set for the lesson using the course provider/service
       final questionSet = await courseProvider.getReviewQuestionSetForLesson(
         lessonId,
       );
 
       if (questionSet == null || questionSet.questions.isEmpty) {
-        // Clear loading state before showing error
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -792,7 +635,7 @@ class _LessonScreenState extends State<LessonScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
             content: Text(
               'The Teacher has not created a review set for this lesson',
               style: TextStyle(
@@ -802,14 +645,13 @@ class _LessonScreenState extends State<LessonScreen> {
             backgroundColor: Theme.of(context).colorScheme.inverseSurface,
           ),
         );
-        return; // Exit early
+        return;
       }
 
       setState(() {
-        _isLoading = true; // Show loading state
+        _isLoading = true;
       });
 
-      // Navigate to ReviewScreen
       final completed = await Navigator.push(
         context,
         MaterialPageRoute(
@@ -819,11 +661,9 @@ class _LessonScreenState extends State<LessonScreen> {
         ),
       );
 
-      // Handle completion
       if (completed == true) {
         bool dialogShown = false;
 
-        // Show loading dialog
         if (mounted) {
           dialogShown = true;
           showDialog(
@@ -847,7 +687,6 @@ class _LessonScreenState extends State<LessonScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Title and close button row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -859,10 +698,10 @@ class _LessonScreenState extends State<LessonScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.close),
+                            icon: const Icon(Icons.close),
                             onPressed: () => Navigator.of(context).pop(),
                             padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(),
+                            constraints: const BoxConstraints(),
                           ),
                         ],
                       ),
@@ -877,35 +716,23 @@ class _LessonScreenState extends State<LessonScreen> {
         }
 
         try {
-          // final courseProvider = Provider.of<CourseProvider>(
-          //   context,
-          //   listen: false,
-          // );
-          //
-          // await courseProvider.loadSingleLessonProgress(widget.moduleId);
-          //
-          // Success case - dismiss dialog and clear loading state
           if (mounted) {
             if (dialogShown) {
-              Navigator.of(context).pop(); // Close loading dialog
+              Navigator.of(context).pop();
             }
             setState(() {
               _isLoading = false;
             });
           }
         } catch (e) {
-          // print("Error in courseProvider.loadSingleLessonProgress: $e");
-
-          // Error case - dismiss dialog and clear loading state
           if (mounted) {
             if (dialogShown) {
-              Navigator.of(context).pop(); // Close loading dialog
+              Navigator.of(context).pop();
             }
             setState(() {
               _isLoading = false;
             });
 
-            // Show error snack bar
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Error updating progress: $e'),
@@ -915,7 +742,6 @@ class _LessonScreenState extends State<LessonScreen> {
           }
         }
       } else {
-        // User didn't complete the review - clear loading state
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -925,7 +751,6 @@ class _LessonScreenState extends State<LessonScreen> {
     } catch (e) {
       debugPrint('Error starting review set: $e');
 
-      // Clear loading state on any error
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -939,7 +764,6 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   void _startQuiz(QuestionSet quiz) {
-    // Check if quiz has no questions
     if (quiz.questions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -955,37 +779,15 @@ class _LessonScreenState extends State<LessonScreen> {
       return;
     }
 
-    // Check if pre-quiz has already been completed
     if (quiz.activityType == ActivityType.preQuiz &&
         _lessonProgress!.isPreQuizComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Pre-Quiz has already been completed',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onInverseSurface,
-            ),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.inverseSurface,
-        ),
-      );
+      _showLockedMessage('Pre-Quiz has already been completed');
       return;
     }
 
-    // Check if post-quiz is being attempted before reading is completed
     if (quiz.activityType == ActivityType.postQuiz &&
         !_lessonProgress!.isReadingComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please complete the Reading activity first',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onInverseSurface,
-            ),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.inverseSurface,
-        ),
-      );
+      _showLockedMessage('Please complete the Reading activity first');
       return;
     }
 
@@ -997,7 +799,7 @@ class _LessonScreenState extends State<LessonScreen> {
     }
 
     setState(() {
-      _isLoading = true; // Show loading state
+      _isLoading = true;
     });
 
     Navigator.push(
@@ -1010,7 +812,6 @@ class _LessonScreenState extends State<LessonScreen> {
           listen: false,
         );
 
-        // Show loading overlay
         if (mounted) {
           showDialog(
             context: context,
@@ -1033,7 +834,6 @@ class _LessonScreenState extends State<LessonScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Title and close button row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1045,10 +845,10 @@ class _LessonScreenState extends State<LessonScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.close),
+                            icon: const Icon(Icons.close),
                             onPressed: () => Navigator.of(context).pop(),
                             padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(),
+                            constraints: const BoxConstraints(),
                           ),
                         ],
                       ),
@@ -1063,7 +863,6 @@ class _LessonScreenState extends State<LessonScreen> {
         }
 
         try {
-          // Load new progress
           await courseProvider.loadSingleLessonProgress(widget.moduleId);
           await Provider.of<DragonProvider>(
             context,
@@ -1075,14 +874,11 @@ class _LessonScreenState extends State<LessonScreen> {
               _lessonProgress = courseProvider.lessonProgress[widget.moduleId];
               _isLoading = false;
             });
-            // Close loading dialog
             Navigator.of(context).pop();
           }
         } catch (e) {
           if (mounted) {
-            // Close loading dialog
             Navigator.of(context).pop();
-            // Show error snackbar
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Error updating progress: $e'),
@@ -1092,14 +888,12 @@ class _LessonScreenState extends State<LessonScreen> {
           }
         }
       } else {
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     });
-  }
-
-  Widget _getDragonImage(DragonProvider dragonProvider) {
-    return DragonImageWidget(moduleId: widget.moduleId, size: 220);
   }
 }

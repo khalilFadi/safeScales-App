@@ -382,6 +382,13 @@ class CourseProvider extends ChangeNotifier {
     return null; // All lessons completed
   }
 
+  /// Lesson immediately after [currentLessonId] in class order, if any.
+  Lesson? getNextLesson(String currentLessonId) {
+    final index = _lessonOrder.indexOf(currentLessonId);
+    if (index == -1 || index >= _lessonOrder.length - 1) return null;
+    return _lessons[_lessonOrder[index + 1]];
+  }
+
   /// Check if a lesson is unlocked (can be accessed)
   bool isLessonUnlocked(String lessonId) {
     final index = _lessonOrder.indexOf(lessonId);
