@@ -77,6 +77,9 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
   }
 
   void _finishPreQuiz() async {
+    await _ttsService.stop();
+    if (!mounted) return;
+
     setState(() {
       _quizEndTime = DateTime.now();
     });
@@ -87,7 +90,10 @@ class _PreQuizScreenState extends State<PreQuizScreen> {
     }
 
     int totalQuestions = widget.questionSet.questions.length;
-    int scorePercentage = ((correctAnswers / totalQuestions) * 100).round();
+    int scorePercentage =
+        totalQuestions == 0
+            ? 0
+            : ((correctAnswers / totalQuestions) * 100).round();
 
     // Save quiz progress
     try {

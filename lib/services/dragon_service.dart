@@ -1,6 +1,7 @@
 import '../models/dragon.dart';
 import '../models/lesson_progress.dart';
 import '../repositories/dragon_repository.dart';
+import '../utils/safe_data.dart';
 import 'course_service.dart';
 
 /// Service that handles all dragon-related business logic
@@ -298,19 +299,8 @@ class DragonService {
     // Filter user dragons to only include those in this class
     userDragonsData.forEach((key, data) {
       if (classDragonIds.contains(key)) {
-        List<String> phases = [];
-
-        if (data is List) {
-          // Legacy format - data is directly the phases list
-          phases = data.cast<String>();
-        } else if (data is Map && data.containsKey('phases')) {
-          // New format - phases are in a 'phases' key
-          final phasesData = data['phases'];
-          if (phasesData is List) {
-            phases = phasesData.cast<String>();
-          }
-        }
-
+        final normalized = normalizeUserDragonRecord(data);
+        final phases = List<String>.from(normalized['phases'] as List);
         if (phases.isNotEmpty) {
           classUnlockedPhases[key] = phases;
         }

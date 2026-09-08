@@ -6,6 +6,7 @@ import '../models/lesson_progress.dart';
 import '../models/question.dart';
 import '../models/reading_slide.dart';
 import '../repositories/course_repository.dart';
+import '../utils/safe_data.dart';
 
 /// Service that handles all course-related business logic
 /// This layer processes data from the repository and applies business rules
@@ -178,23 +179,30 @@ class CourseService {
       }
 
 
-      // Get the User's reading data
-      //TODO: Replace with better reading data table access
+      // Reading progress may be missing until the student starts reading.
       final progressData = await _repository.getUserReadingProgress(userId);
-      if (progressData == null || !progressData.containsKey(lessonId)) {
-        throw CourseServiceException('Lesson data for lesson $lessonId in class ${classId} is null or no matching lesson id');
+      Map<String, dynamic> lessonProgressData = {};
+      if (progressData != null && progressData.containsKey(lessonId)) {
+        final rawLesson = progressData[lessonId];
+        if (rawLesson is Map) {
+          lessonProgressData = Map<String, dynamic>.from(rawLesson);
+        }
       }
-      Map<String, dynamic> lessonProgressData = progressData[lessonId];
 
+      if (lessonProgressData.containsKey('reading') &&
+          lessonProgressData['reading'] is Map) {
+        final readingData = Map<String, dynamic>.from(
+          lessonProgressData['reading'] as Map,
+        );
 
-      if (lessonProgressData.containsKey('reading')) {
-        final readingData = lessonProgressData['reading'] as Map<String, dynamic>;
-
-        if (readingData.containsKey('bookmarks')) {
-          bookmarks = Set<int>.from(readingData['bookmarks'],);
+        if (readingData.containsKey('bookmarks') &&
+            readingData['bookmarks'] is List) {
+          bookmarks = {
+            for (final item in readingData['bookmarks'] as List) asInt(item),
+          };
         }
 
-        isReadingComplete = readingData['completed'] ?? false;
+        isReadingComplete = readingData['completed'] == true;
       }
 
       // Get the User's quiz data for lesson
@@ -244,38 +252,9 @@ class CourseService {
       for (final rawQuizAttempt in rawData) {
 
         if (rawQuizAttempt['quiz_type'] == 'post_quiz') {
-
-          QuizAttempt quizAttempt = QuizAttempt(
-            id: rawQuizAttempt['id'],
-            quizId: rawQuizAttempt['quiz_id'],
-            lessonId: rawQuizAttempt['quiz_id'].split('_')[0],
-            type: ActivityType.postQuiz,
-            correctAnswers: rawQuizAttempt['num_correct_answers'],
-            totalQuestions: rawQuizAttempt['total_questions'],
-            responses: _parseResponses(rawQuizAttempt['question_responses']),
-            startedAt: DateTime.parse(rawQuizAttempt['started_at']),
-            completedAt: DateTime.parse(rawQuizAttempt['completed_at']),
-          );
-
-          postQuizAttempts.add(quizAttempt);
-
-        }
-        else if (rawQuizAttempt['quiz_type'] == 'pre_quiz' && preQuizAttempt.isEmpty) {
-
-          // Should only add 1 preQuizAttempt
-          QuizAttempt quizAttempt = QuizAttempt(
-            id: rawQuizAttempt['id'],
-            quizId: rawQuizAttempt['quiz_id'],
-            lessonId: rawQuizAttempt['quiz_id'].split('_')[0],
-            type: ActivityType.preQuiz,
-            correctAnswers: rawQuizAttempt['num_correct_answers'],
-            totalQuestions: rawQuizAttempt['total_questions'],
-            responses: _parseResponses(rawQuizAttempt['question_responses']),
-            startedAt: DateTime.parse(rawQuizAttempt['started_at']),
-            completedAt: DateTime.parse(rawQuizAttempt['completed_at']),
-          );
-
-          preQuizAttempt.add(quizAttempt);
+          postQuizAttempts.add(_quizAttemptFromRaw(rawQuizAttempt, ActivityType.postQuiz));
+        } else if (rawQuizAttempt['quiz_type'] == 'pre_quiz' && preQuizAttempt.isEmpty) {
+          preQuizAttempt.add(_quizAttemptFromRaw(rawQuizAttempt, ActivityType.preQuiz));
         }
       }
 
@@ -451,17 +430,20 @@ class CourseService {
   //   );
   // }
 
-  /// Parse responses from dynamic data
-  List<List<int>> _parseResponses(List<dynamic> answers) {
-    List<List<int>> responses = [];
-    for (final answer in answers) {
-      if (answer is List) {
-        responses.add(List<int>.from(answer));
-      } else {
-        responses.add([]);
-      }
-    }
-    return responses;
+  QuizAttempt _quizAttemptFromRaw(Map<String, dynamic> raw, ActivityType type) {
+    final quizId = asString(raw['quiz_id']);
+    final lessonIdFromQuiz = quizId.contains('_') ? quizId.split('_')[0] : quizId;
+    return QuizAttempt(
+      id: asString(raw['id']),
+      quizId: quizId,
+      lessonId: asString(raw['lesson_id'], fallback: lessonIdFromQuiz),
+      type: type,
+      correctAnswers: asInt(raw['num_correct_answers']),
+      totalQuestions: asInt(raw['total_questions']),
+      responses: parseQuestionResponses(raw['question_responses']),
+      startedAt: parseDateTime(raw['started_at']),
+      completedAt: parseDateTime(raw['completed_at']),
+    );
   }
 
   /// Transform raw lesson data into domain model
@@ -477,9 +459,11 @@ class CourseService {
   }
 
   QuestionSet _createPreQuiz(Map<String, dynamic> lessonMap) {
-    final preQuizMap = Map<String, dynamic>.from(lessonMap['pre_quiz'] as Map);
+    final rawPre = lessonMap['pre_quiz'];
+    final preQuizMap = rawPre is Map ? Map<String, dynamic>.from(rawPre) : <String, dynamic>{};
+    final rawQuestions = preQuizMap['questions'];
     final questions = _createQuestionsFromList(
-      List<dynamic>.from(preQuizMap['questions'] as List),
+      rawQuestions is List ? List<dynamic>.from(rawQuestions) : <dynamic>[],
     );
     final String quizId = '${lessonMap['id']}_preQuiz';
 
@@ -494,11 +478,11 @@ class CourseService {
   }
 
   QuestionSet _createPostQuiz(Map<String, dynamic> lessonMap) {
-    final postQuizMap = Map<String, dynamic>.from(
-      lessonMap['post_quiz'] as Map,
-    );
+    final rawPost = lessonMap['post_quiz'];
+    final postQuizMap = rawPost is Map ? Map<String, dynamic>.from(rawPost) : <String, dynamic>{};
+    final rawQuestions = postQuizMap['questions'];
     final questions = _createQuestionsFromList(
-      List<dynamic>.from(postQuizMap['questions'] as List),
+      rawQuestions is List ? List<dynamic>.from(rawQuestions) : <dynamic>[],
     );
     final String quizId = '${lessonMap['id']}_postQuiz';
 
@@ -509,14 +493,15 @@ class CourseService {
       activityType: ActivityType.postQuiz,
       subject: '',
       questions: questions,
-      passingScore: lessonMap['minimum_passing_grade'],
+      passingScore: asInt(lessonMap['minimum_passing_grade'], fallback: 80),
     );
   }
 
   List<Question> _createQuestionsFromList(List<dynamic> questionsData) {
     List<Question> questions = [];
     for (var q in questionsData) {
-      final questionMap = Map<String, dynamic>.from(q as Map);
+      if (q is! Map) continue;
+      final questionMap = Map<String, dynamic>.from(q);
       
       // Skip questions with empty questionText before processing
       final String questionText = (questionMap['question'] ?? '').toString().trim();
@@ -524,9 +509,13 @@ class CourseService {
         continue; // Skip invalid questions
       }
       
-      final question = _createSingleQuestion(questionMap);
-      if (question != null) {
-        questions.add(question);
+      try {
+        final question = _createSingleQuestion(questionMap);
+        if (question != null) {
+          questions.add(question);
+        }
+      } catch (e) {
+        print('Skipping invalid quiz question: $e');
       }
     }
     return questions;
@@ -539,21 +528,34 @@ class CourseService {
       return null; // Skip questions with empty questionText
     }
 
-    final List<String> choices = List<String>.from(questionData['choices'] ?? []);
+    final rawChoices = questionData['choices'];
+    final List<String> choices = List<String>.from(
+      (rawChoices is List ? rawChoices : []).map((c) => c.toString()),
+    );
 
     List<String> filteredList = choices.where((s) => s.isNotEmpty).toList();
 
-    // Skip questions with no valid options
     if (filteredList.isEmpty) {
       return null;
     }
 
+    int correctIndex = asInt(questionData['answer']);
+    if (correctIndex < 0 || correctIndex >= filteredList.length) {
+      if (correctIndex >= 0 && correctIndex < choices.length) {
+        final correctText = choices[correctIndex];
+        final remapped = filteredList.indexOf(correctText);
+        correctIndex = remapped >= 0 ? remapped : 0;
+      } else {
+        correctIndex = 0;
+      }
+    }
+
     return Question.singleAnswer(
-      id: '',
+      id: asString(questionData['id']),
       questionText: questionText,
       options: filteredList,
-      correctAnswerIndex: int.parse(questionData['answer']),
-      explanation: '',
+      correctAnswerIndex: correctIndex,
+      explanation: asString(questionData['explanation']),
     );
   }
 

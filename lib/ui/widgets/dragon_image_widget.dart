@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/dragon.dart';
 import '../../providers/course_provider.dart';
 import '../../providers/dragon_provider.dart';
+import 'safe_network_or_asset_image.dart';
 
 class DragonImageWidget extends StatelessWidget {
   final String? dragonId;
@@ -32,30 +33,20 @@ class DragonImageWidget extends StatelessWidget {
 
         String imageUrl = 'assets/images/other/QuestionMark.png';
         if (dragon != null) {
-          imageUrl = dragonProvider.getDragonImageUrl(
+          final resolved = dragonProvider.getDragonImageUrl(
             dragon.id,
             forPhase: phase ?? dragonProvider.getDragonHighestPhase(dragon.id),
           );
+          if (resolved.trim().isNotEmpty) {
+            imageUrl = resolved;
+          }
         }
 
-        Widget imageWidget = Image.asset(imageUrl, width: size, height: size);
-
-        if (imageUrl.startsWith('http')) {
-          imageWidget = Image.network(
-            imageUrl,
-            width: size,
-            height: size,
-            errorBuilder: (context, error, stackTrace) {
-              return Image.asset(
-                'assets/images/other/QuestionMark.png',
-                width: size,
-                height: size,
-              );
-            },
-          );
-        }
-
-        return imageWidget;
+        return SafeNetworkOrAssetImage(
+          imageUrl: imageUrl,
+          width: size,
+          height: size,
+        );
       },
     );
   }

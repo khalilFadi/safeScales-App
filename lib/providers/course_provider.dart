@@ -140,16 +140,20 @@ class CourseProvider extends ChangeNotifier {
   Future<void> loadSingleLessonProgress(String lessonId) async {
     if (!isUserLoggedIn) return;
 
-    await _executeWithErrorHandling(() async {
-      final progress = await _courseService.getLessonProgress(
-        currentUser!.id,
-        lessonId,
-      );
+    try {
+      await _executeWithErrorHandling(() async {
+        final progress = await _courseService.getLessonProgress(
+          currentUser!.id,
+          lessonId,
+        );
 
-      if (progress != null) {
-        _lessonProgress[lessonId] = progress;
-      }
-    });
+        if (progress != null) {
+          _lessonProgress[lessonId] = progress;
+        }
+      });
+    } catch (e) {
+      debugPrint('loadSingleLessonProgress failed for $lessonId: $e');
+    }
   }
 
   /// Save quiz progress
