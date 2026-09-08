@@ -1004,99 +1004,115 @@ class _LessonScreenState extends State<LessonScreen> {
       context,
       MaterialPageRoute(builder: (context) => quizScreen),
     ).then((completed) async {
-      if (completed == true) {
-        final courseProvider = Provider.of<CourseProvider>(
-          context,
-          listen: false,
-        );
+      await _onQuizRouteClosed(completed == true);
+    });
+  }
 
-        // Show loading overlay
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return Center(
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+  Future<void> _onQuizRouteClosed(bool completed) async {
+    if (!mounted) return;
+
+    if (!completed) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final courseProvider = Provider.of<CourseProvider>(
+      context,
+      listen: false,
+    );
+
+    var dialogOpen = false;
+    if (mounted) {
+      dialogOpen = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Theme.of(dialogContext).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Title and close button row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Updating progress...',
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close),
-                            onPressed: () => Navigator.of(context).pop(),
-                            padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const CircularProgressIndicator(),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        }
-
-        try {
-          // Load new progress
-          await courseProvider.loadSingleLessonProgress(widget.moduleId);
-          await Provider.of<DragonProvider>(
-            context,
-            listen: false,
-          ).updateDragonPhases(widget.moduleId);
-
-          if (mounted) {
-            setState(() {
-              _lessonProgress = courseProvider.lessonProgress[widget.moduleId];
-              _isLoading = false;
-            });
-            // Close loading dialog
-            Navigator.of(context).pop();
-          }
-        } catch (e) {
-          if (mounted) {
-            // Close loading dialog
-            Navigator.of(context).pop();
-            // Show error snackbar
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error updating progress: $e'),
-                backgroundColor: Theme.of(context).colorScheme.error,
+                ],
               ),
-            );
-          }
-        }
-      } else {
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Updating progress...',
+                          style: Theme.of(dialogContext).textTheme.bodyLarge,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          dialogOpen = false;
+                          Navigator.of(dialogContext).pop();
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const CircularProgressIndicator(),
+                ],
+              ),
+            ),
+          );
+        },
+      ).whenComplete(() {
+        dialogOpen = false;
+      });
+    }
+
+    try {
+      await courseProvider.loadSingleLessonProgress(widget.moduleId);
+      if (!mounted) return;
+      await Provider.of<DragonProvider>(
+        context,
+        listen: false,
+      ).updateDragonPhases(widget.moduleId);
+
+      if (mounted) {
         setState(() {
+          _lessonProgress =
+              courseProvider.lessonProgress[widget.moduleId] ?? _lessonProgress;
           _isLoading = false;
         });
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating progress: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted && dialogOpen) {
+        dialogOpen = false;
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   Widget _getDragonImage(DragonProvider dragonProvider) {

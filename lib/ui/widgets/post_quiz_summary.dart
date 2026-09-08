@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safe_scales/models/question.dart';
 import 'package:safe_scales/themes/app_theme.dart';
+import 'package:safe_scales/utils/safe_data.dart';
 import 'styled_markdown.dart';
 
 class PostQuizSummary extends StatefulWidget {
@@ -67,11 +68,7 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
   }
 
   String getUserAnswerText(Question question, List<int> userAnswer) {
-    if (userAnswer.isEmpty) {
-      return 'Not answered';
-    } else {
-      return userAnswer.map((index) => question.options[index]).join(', ');
-    }
+    return joinSelectedOptions(question.options, userAnswer);
   }
 
   Widget buildQuestionCard(int questionIndex, bool isMissed) {
@@ -140,9 +137,10 @@ class _PostQuizSummaryState extends State<PostQuizSummary> {
                       ),
                     ),
                     TextSpan(
-                      text: question.correctAnswerIndices
-                          .map((index) => question.options[index])
-                          .join(', '),
+                      text: joinSelectedOptions(
+                        question.options,
+                        question.correctAnswerIndices,
+                      ),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontSize: 16 * AppTheme.fontSizeScale,
                         color: theme.colorScheme.green,

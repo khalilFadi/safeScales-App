@@ -35,32 +35,35 @@ class PreQuizResultScreen extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 30, vertical: 25),
           child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Great job completing the quiz!',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Great job completing the quiz!',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 30),
+                      Text(
+                        'Your new dragon egg hatched!',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                      SizedBox(height: 30),
+                      DragonImageWidget(
+                        moduleId: moduleId,
+                        size: 300,
+                        phase: 'stage1',
+                      ),
+                      SizedBox(height: 30),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
-
-              SizedBox(height: 30),
-
-              Text(
-                'Your new dragon egg hatched!',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge,
-              ),
-
-              SizedBox(height: 30),
-
-              DragonImageWidget(moduleId: moduleId, size: 300, phase: 'stage1'),
-
-              SizedBox(height: 30),
-
-              Spacer(),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

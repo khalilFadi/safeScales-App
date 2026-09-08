@@ -1,4 +1,5 @@
 import 'package:safe_scales/models/question.dart';
+import 'package:safe_scales/utils/safe_data.dart';
 
 class LessonProgress {
   final String lessonId;
@@ -107,8 +108,7 @@ class QuizAttempt {
   // final int attemptNumber;
   // final bool passed; // based on passing threshold
 
-  double get score =>
-      ((correctAnswers / totalQuestions) * 100).round().toDouble();
+  double get score => safeScorePercent(correctAnswers, totalQuestions);
 
   QuizAttempt({
     required this.id,

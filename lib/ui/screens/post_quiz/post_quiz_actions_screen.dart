@@ -194,16 +194,18 @@ class _PostQuizActionsScreenState extends State<PostQuizActionsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('Results')),
-      body: Center(
+      body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 30, vertical: 25),
           child: Column(
             children: [
-              // Show dragon action if passed, suggested action if failed
-              widget.score >= widget.passingScore
-                  ? _buildDragonAction(context)
-                  : _buildSuggestedAction(context),
-              Spacer(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: widget.score >= widget.passingScore
+                      ? _buildDragonAction(context)
+                      : _buildSuggestedAction(context),
+                ),
+              ),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -220,7 +222,7 @@ class _PostQuizActionsScreenState extends State<PostQuizActionsScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 16),
             ],
           ),
         ),
