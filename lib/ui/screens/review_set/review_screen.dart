@@ -154,7 +154,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
   //                 ShopItemCard(
   //                   image: items[i].imageUrl,
   //                   name: items[i].name,
-  //                   cost: items[i].cost.toString() ?? '1',
   //                   isSelected: false, //selectedIndex == i,
   //                   highlight: Theme.of(context).colorScheme.green.withValues(alpha: 0.25),
   //                   onTap: () {

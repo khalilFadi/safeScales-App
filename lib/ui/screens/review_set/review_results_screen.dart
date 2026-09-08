@@ -134,7 +134,6 @@ class _ReviewResultsScreen extends State<ReviewResultsScreen> {
             ShopItemCard(
               image: items[i].imageUrl,
               name: items[i].name,
-              cost: items[i].cost.toString() ?? '1',
               highlight: highlight,
               onTap: () {
                 setState(() {

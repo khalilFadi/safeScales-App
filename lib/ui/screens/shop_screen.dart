@@ -423,7 +423,6 @@ class _ShopScreenState extends State<ShopScreen> {
             ShopItemCard(
               image: items[i].imageUrl,
               name: items[i].name,
-              cost: items[i].cost.toString() ?? '1',
               highlight: highlight,
               onTap: () {
                 setState(() {
