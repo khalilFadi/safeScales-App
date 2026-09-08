@@ -1023,63 +1023,6 @@ class _LessonScreenState extends State<LessonScreen> {
       listen: false,
     );
 
-    var dialogOpen = false;
-    if (mounted) {
-      dialogOpen = true;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext dialogContext) {
-          return Center(
-            child: Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: Theme.of(dialogContext).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Updating progress...',
-                          style: Theme.of(dialogContext).textTheme.bodyLarge,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          dialogOpen = false;
-                          Navigator.of(dialogContext).pop();
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const CircularProgressIndicator(),
-                ],
-              ),
-            ),
-          );
-        },
-      ).whenComplete(() {
-        dialogOpen = false;
-      });
-    }
-
     try {
       await courseProvider.loadSingleLessonProgress(widget.moduleId);
       if (!mounted) return;
@@ -1106,11 +1049,6 @@ class _LessonScreenState extends State<LessonScreen> {
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
-      }
-    } finally {
-      if (mounted && dialogOpen) {
-        dialogOpen = false;
-        Navigator.of(context).pop();
       }
     }
   }
