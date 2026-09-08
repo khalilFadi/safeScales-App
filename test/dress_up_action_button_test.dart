@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:safe_scales/services/dragon_service.dart';
 import 'package:safe_scales/ui/widgets/dress_up_action_button.dart';
 
@@ -12,14 +11,14 @@ void main() {
     expect(DragonService.phaseDisplayNames['final'], 'Adult');
   });
 
-  testWidgets('Phase button shows dragon icon and current phase subtitle', (
+  testWidgets('Phase button shows title and current phase subtitle', (
     tester,
   ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: DressUpActionButton(
-            icon: const FaIcon(FontAwesomeIcons.dragon),
+            icon: const Icon(Icons.pets),
             title: 'Phase',
             subtitle: 'Egg',
             onTap: () {},
@@ -30,8 +29,6 @@ void main() {
 
     expect(find.text('Phase'), findsOneWidget);
     expect(find.text('Egg'), findsOneWidget);
-    final faIcon = tester.widget<FaIcon>(find.byType(FaIcon));
-    expect(faIcon.icon, FontAwesomeIcons.dragon);
     expect(find.byIcon(Icons.auto_awesome), findsNothing);
   });
 
