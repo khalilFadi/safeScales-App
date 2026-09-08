@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safe_scales/themes/app_theme.dart';
 import '../../widgets/dragon_image_widget.dart';
+import '../../widgets/scrollable_completion_body.dart';
 
 // Define action types for better type safety
 enum QuizAction {
@@ -194,35 +195,30 @@ class _PostQuizActionsScreenState extends State<PostQuizActionsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('Results')),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 25),
-          child: Column(
-            children: [
-              // Show dragon action if passed, suggested action if failed
-              widget.score >= widget.passingScore
-                  ? _buildDragonAction(context)
-                  : _buildSuggestedAction(context),
-              Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _handleReturnToLesson,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.secondary,
-                    foregroundColor: theme.colorScheme.onSecondary,
-                  ),
-                  child: Text(
-                    'Return to lesson'.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: theme.textTheme.bodyMedium?.fontSize,
-                    ),
+      body: ScrollableCompletionBody(
+        content: widget.score >= widget.passingScore
+            ? _buildDragonAction(context)
+            : _buildSuggestedAction(context),
+        action: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _handleReturnToLesson,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.secondary,
+                  foregroundColor: theme.colorScheme.onSecondary,
+                ),
+                child: Text(
+                  'Return to lesson'.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: theme.textTheme.bodyMedium?.fontSize,
                   ),
                 ),
               ),
-              SizedBox(height: 30),
-            ],
-          ),
+            ),
+            SizedBox(height: 30),
+          ],
         ),
       ),
     );

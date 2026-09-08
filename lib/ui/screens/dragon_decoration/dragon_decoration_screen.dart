@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:safe_scales/providers/dragon_decoration_provider.dart';
 import 'package:safe_scales/ui/widgets/dragon_image_widget.dart';
+import 'package:safe_scales/ui/widgets/dress_up_action_button.dart';
 import 'package:safe_scales/ui/widgets/sticker_collection_widget.dart';
 import 'package:safe_scales/models/sticker_item_model.dart';
 import '../../../providers/dragon_provider.dart';
@@ -77,17 +78,11 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
     ThemeData theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final double dragonSize = screenWidth * 0.75;
 
-    // Ensure environment size doesn't exceed screen bounds
+    // Width is based on the dragon; height fills leftover space so the
+    // habitat grows instead of leaving a gap above the item tray.
     final environmentWidth = (dragonSize * 1.25).clamp(0.0, screenWidth * 0.95);
-    final environmentHeight = (dragonSize * 1.8).clamp(0.0, screenHeight * 0.6);
-
-    final environmentSize = (
-      width: environmentWidth,
-      height: environmentHeight,
-    );
 
     return Consumer2<DragonDecorationProvider, DragonProvider>(
       builder: (context, dragonDecorationProvider, dragonProvider, child) {
@@ -183,40 +178,17 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
           ),
           body: Column(
             children: [
-              // Hint info with hints button
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 10),
-                          Text(
-                            'Tap an item to move and resize it',
-                            style: theme.textTheme.labelSmall,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Use buttons to resize or change layer',
-                            style: theme.textTheme.labelSmall,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Long press an item to remove it',
-                            style: theme.textTheme.labelSmall,
-                          ),
-                          SizedBox(height: 10),
-                        ],
-                      ),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: Center(
+                  child: Text(
+                    'Dress up your dragon',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w400,
                     ),
-                    IconButton(
-                      icon: Icon(Icons.help_outline, size: 28),
-                      tooltip: 'Tips from Dr. Page and Mia',
-                      onPressed: _showHintsDialog,
-                    ),
-                  ],
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
 
@@ -227,148 +199,37 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                   vertical: 15,
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () => _showPhaseDialog(),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                theme.brightness == Brightness.light
-                                    ? colorScheme.primary.withValues(alpha: 0.2)
-                                    : colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color:
-                                  theme.brightness == Brightness.light
-                                      ? colorScheme.primary.withValues(
-                                        alpha: 0.6,
-                                      )
-                                      : colorScheme.primary.withValues(
-                                        alpha: 0.3,
-                                      ),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                FontAwesomeIcons.dragon,
-                                size: 20,
-                                color:
-                                    theme.brightness == Brightness.light
-                                        ? colorScheme.primary
-                                        : colorScheme.onPrimaryContainer,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  'Dragon Phase',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        theme.brightness == Brightness.light
-                                            ? colorScheme.primary
-                                            : colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+                      child: DressUpActionButton(
+                        icon: const FaIcon(FontAwesomeIcons.dragon, size: 20),
+                        title: 'Phase',
+                        subtitle: dragonProvider.getPhaseDisplayName(
+                          selectedPhase.isNotEmpty
+                              ? selectedPhase
+                              : widget.currentPhase,
                         ),
+                        onTap: _showPhaseDialog,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () => _showEnvironmentDialog(),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                dragonDecorationProvider
-                                            .getCurrentEnvironment() !=
-                                        null
-                                    ? (theme.brightness == Brightness.light
-                                        ? colorScheme.primary.withValues(
-                                          alpha: 0.2,
-                                        )
-                                        : colorScheme.primaryContainer)
-                                    : (theme.brightness == Brightness.light
-                                        ? _lightModeUnselectedSurface(
-                                          colorScheme,
-                                        )
-                                        : colorScheme.surfaceContainerHighest),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color:
-                                  dragonDecorationProvider
-                                              .getCurrentEnvironment() !=
-                                          null
-                                      ? (theme.brightness == Brightness.light
-                                          ? colorScheme.primary.withValues(
-                                            alpha: 0.6,
-                                          )
-                                          : colorScheme.primary.withValues(
-                                            alpha: 0.3,
-                                          ))
-                                      : colorScheme.outline.withValues(
-                                        alpha: 0.3,
-                                      ),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.landscape,
-                                size: 20,
-                                color:
-                                    dragonDecorationProvider
-                                                .getCurrentEnvironment() !=
-                                            null
-                                        ? (theme.brightness == Brightness.light
-                                            ? colorScheme.primary
-                                            : colorScheme.onPrimaryContainer)
-                                        : colorScheme.onSurfaceVariant,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  _getEnvironmentDisplayName(
-                                    dragonDecorationProvider,
-                                  ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        dragonDecorationProvider
-                                                    .getCurrentEnvironment() !=
-                                                null
-                                            ? (theme.brightness ==
-                                                    Brightness.light
-                                                ? colorScheme.primary
-                                                : colorScheme
-                                                    .onPrimaryContainer)
-                                            : colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+                      child: DressUpActionButton(
+                        icon: const Icon(Icons.home_outlined, size: 22),
+                        title: 'Habitat',
+                        subtitle: _getEnvironmentDisplayName(
+                          dragonDecorationProvider,
                         ),
+                        onTap: _showEnvironmentDialog,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DressUpActionButton(
+                        icon: const Icon(Icons.help_outline, size: 22),
+                        title: 'Help',
+                        onTap: _showHintsDialog,
                       ),
                     ),
                   ],
@@ -377,123 +238,132 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
 
               // Dragon area with drop zone - wrapped in SizedBox for habitat-local coordinates
               Expanded(
-                child: Center(
-                  child: SizedBox(
-                    key: _habitatKey,
-                    width: environmentSize.width,
-                    height: environmentSize.height,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      clipBehavior: Clip.hardEdge,
-                      children: [
-                        // Environment background
-                        if (dragonDecorationProvider.getCurrentEnvironment() !=
-                            null)
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24),
-                                image: DecorationImage(
-                                  image: NetworkImage(
-                                    dragonDecorationProvider
-                                        .getCurrentEnvironment()!
-                                        .imageUrl,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final environmentSize = (
+                      width: environmentWidth.clamp(0.0, constraints.maxWidth),
+                      height: constraints.maxHeight,
+                    );
+
+                    return Align(
+                      alignment: Alignment.bottomCenter,
+                      child: SizedBox(
+                        key: _habitatKey,
+                        width: environmentSize.width,
+                        height: environmentSize.height,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          clipBehavior: Clip.hardEdge,
+                          children: [
+                            // Environment background
+                            if (dragonDecorationProvider
+                                    .getCurrentEnvironment() !=
+                                null)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(24),
+                                    image: DecorationImage(
+                                      image: NetworkImage(
+                                        dragonDecorationProvider
+                                            .getCurrentEnvironment()!
+                                            .imageUrl,
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                  fit: BoxFit.cover,
                                 ),
+                              ),
+
+                            // Stickers behind the dragon
+                            ...dragonDecorationProvider.placedStickers
+                                .where((sticker) => sticker.isBehindDragon)
+                                .map((sticker) {
+                                  final isSelected =
+                                      dragonDecorationProvider
+                                          .selectedStickerId ==
+                                      sticker.id;
+
+                                  return _buildSticker(
+                                    sticker,
+                                    isSelected,
+                                    environmentSize,
+                                    dragonDecorationProvider,
+                                  );
+                                }),
+
+                            // Drop zone for dragon
+                            // Wrapped in IgnorePointer when not dragging to allow stickers behind to receive touches
+                            DragTarget<Map<String, dynamic>>(
+                              hitTestBehavior: HitTestBehavior.translucent,
+                              builder: (context, candidateData, rejectedData) {
+                                return IgnorePointer(
+                                  ignoring: candidateData.isEmpty,
+                                  child: Container(
+                                    width: environmentSize.width,
+                                    height: environmentSize.height,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          candidateData.isNotEmpty
+                                              ? colorScheme.primary.withValues(
+                                                alpha: 0.1,
+                                              )
+                                              : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color:
+                                            candidateData.isNotEmpty
+                                                ? colorScheme.primary
+                                                : colorScheme.primary
+                                                    .withValues(alpha: 0.2),
+                                        width: candidateData.isNotEmpty ? 3 : 2,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              onAcceptWithDetails: (details) {
+                                _handleStickerDrop(
+                                  details,
+                                  dragonSize,
+                                  environmentSize,
+                                  dragonDecorationProvider,
+                                );
+                              },
+                            ),
+
+                            // Dragon Image - wrapped in IgnorePointer so stickers behind can be interacted with
+                            IgnorePointer(
+                              child: DragonImageWidget(
+                                dragonId: widget.dragonId,
+                                size: dragonSize * 0.75,
+                                phase: selectedPhase,
                               ),
                             ),
-                          ),
 
-                        // Stickers behind the dragon
-                        ...dragonDecorationProvider.placedStickers
-                            .where((sticker) => sticker.isBehindDragon)
-                            .map((sticker) {
-                              final isSelected =
-                                  dragonDecorationProvider.selectedStickerId ==
-                                  sticker.id;
+                            // Stickers in front of the dragon
+                            ...dragonDecorationProvider.placedStickers
+                                .where((sticker) => !sticker.isBehindDragon)
+                                .map((sticker) {
+                                  final isSelected =
+                                      dragonDecorationProvider
+                                          .selectedStickerId ==
+                                      sticker.id;
 
-                              return _buildSticker(
-                                sticker,
-                                isSelected,
-                                environmentSize,
-                                dragonDecorationProvider,
-                              );
-                            }),
-
-                        // Drop zone for dragon
-                        // Wrapped in IgnorePointer when not dragging to allow stickers behind to receive touches
-                        DragTarget<Map<String, dynamic>>(
-                          hitTestBehavior: HitTestBehavior.translucent,
-                          builder: (context, candidateData, rejectedData) {
-                            return IgnorePointer(
-                              ignoring: candidateData.isEmpty,
-                              child: Container(
-                                width: environmentSize.width,
-                                height: environmentSize.height,
-                                decoration: BoxDecoration(
-                                  color:
-                                      candidateData.isNotEmpty
-                                          ? colorScheme.primary.withValues(
-                                            alpha: 0.1,
-                                          )
-                                          : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color:
-                                        candidateData.isNotEmpty
-                                            ? colorScheme.primary
-                                            : colorScheme.primary.withValues(
-                                              alpha: 0.2,
-                                            ),
-                                    width: candidateData.isNotEmpty ? 3 : 2,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          onAcceptWithDetails: (details) {
-                            _handleStickerDrop(
-                              details,
-                              dragonSize,
-                              environmentSize,
-                              dragonDecorationProvider,
-                            );
-                          },
+                                  return _buildSticker(
+                                    sticker,
+                                    isSelected,
+                                    environmentSize,
+                                    dragonDecorationProvider,
+                                  );
+                                }),
+                          ],
                         ),
-
-                        // Dragon Image - wrapped in IgnorePointer so stickers behind can be interacted with
-                        IgnorePointer(
-                          child: DragonImageWidget(
-                            dragonId: widget.dragonId,
-                            size: dragonSize * 0.75,
-                            phase: selectedPhase,
-                          ),
-                        ),
-
-                        // Stickers in front of the dragon
-                        ...dragonDecorationProvider.placedStickers
-                            .where((sticker) => !sticker.isBehindDragon)
-                            .map((sticker) {
-                              final isSelected =
-                                  dragonDecorationProvider.selectedStickerId ==
-                                  sticker.id;
-
-                              return _buildSticker(
-                                sticker,
-                                isSelected,
-                                environmentSize,
-                                dragonDecorationProvider,
-                              );
-                            }),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
-
-              // Whitespace between dragon habitat and item collection
-              const SizedBox(height: 24),
 
               // Accessory picker
               StickerCollectionWidget(
@@ -796,7 +666,7 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                   Row(
                     children: [
                       Icon(
-                        Icons.landscape,
+                        Icons.home_outlined,
                         color: colorScheme.primary,
                         size: 28,
                       ),

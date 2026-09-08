@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/supabase_config.dart';
+import '../utils/safe_data.dart';
 
 /// Repository responsible for all dragon-related database operations
 /// This layer only handles data access - no business logic
@@ -117,15 +118,9 @@ class DragonRepository {
 
       // Update specific dragon phases
 
-      // Create a default dragon set up
-      if (currentData[dragonId] == null) {
-        currentData[dragonId] = {
-          'name': 'no name',
-          'phases': ['egg'],
-        };
-      }
-
-      currentData[dragonId]["phases"] = phases;
+      final normalized = normalizeUserDragonRecord(currentData[dragonId]);
+      normalized['phases'] = phases;
+      currentData[dragonId] = normalized;
 
       // Save back to database
       await _supabase

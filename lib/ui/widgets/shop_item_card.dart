@@ -6,7 +6,6 @@ import '../../themes/app_theme.dart';
 class ShopItemCard extends StatelessWidget {
   final String? image;
   final String name;
-  final String cost;
   final bool isSelected;
   final Color highlight;
   final VoidCallback onTap;
@@ -14,7 +13,6 @@ class ShopItemCard extends StatelessWidget {
   const ShopItemCard({
     this.image,
     required this.name,
-    required this.cost,
     required this.isSelected,
     required this.highlight,
     required this.onTap,
@@ -23,8 +21,6 @@ class ShopItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
-
-    Color green = theme.colorScheme.secondary;
 
     return Material(
       color: Colors.transparent,
@@ -92,19 +88,14 @@ class ShopItemCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 name.toTitleCase(),
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontSize: 15 * AppTheme.fontSizeScale,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontSize: 12 * AppTheme.fontSizeScale,
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Cost: $cost review set', //isOwned ? 'OWNED'.toUpperCase() : 'Cost: $cost review set',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant, //isOwned ? green : theme.colorScheme.onSurfaceVariant,
-                ),
+                softWrap: false,
               ),
             ],
           ),

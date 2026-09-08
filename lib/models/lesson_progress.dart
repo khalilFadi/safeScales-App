@@ -1,4 +1,5 @@
 import 'package:safe_scales/models/question.dart';
+import 'package:safe_scales/utils/safe_data.dart';
 
 class LessonProgress {
   final String lessonId;
@@ -12,6 +13,20 @@ class LessonProgress {
   final int requiredPassingScore;
 
   bool get isPreQuizComplete => preQuizAttempt != null;
+
+  /// Pre-quiz, reading, and post-quiz each count as one activity toward 3/3.
+  static const int totalActivities = 3;
+
+  int get completedActivityCount {
+    int count = 0;
+    if (isPreQuizComplete) count++;
+    if (isReadingComplete) count++;
+    if (isPostQuizComplete()) count++;
+    return count;
+  }
+
+  bool get areAllActivitiesComplete =>
+      isPreQuizComplete && isReadingComplete && isPostQuizComplete();
   // bool get isPostQuizComplete =>
   //     postQuizAttempts.isNotEmpty &&
   //     postQuizAttempts.first.score >= requiredPassingScore;
@@ -107,8 +122,7 @@ class QuizAttempt {
   // final int attemptNumber;
   // final bool passed; // based on passing threshold
 
-  double get score =>
-      ((correctAnswers / totalQuestions) * 100).round().toDouble();
+  double get score => safeScorePercent(correctAnswers, totalQuestions);
 
   QuizAttempt({
     required this.id,

@@ -140,16 +140,20 @@ class CourseProvider extends ChangeNotifier {
   Future<void> loadSingleLessonProgress(String lessonId) async {
     if (!isUserLoggedIn) return;
 
-    await _executeWithErrorHandling(() async {
-      final progress = await _courseService.getLessonProgress(
-        currentUser!.id,
-        lessonId,
-      );
+    try {
+      await _executeWithErrorHandling(() async {
+        final progress = await _courseService.getLessonProgress(
+          currentUser!.id,
+          lessonId,
+        );
 
-      if (progress != null) {
-        _lessonProgress[lessonId] = progress;
-      }
-    });
+        if (progress != null) {
+          _lessonProgress[lessonId] = progress;
+        }
+      });
+    } catch (e) {
+      debugPrint('loadSingleLessonProgress failed for $lessonId: $e');
+    }
   }
 
   /// Save quiz progress
@@ -380,6 +384,13 @@ class CourseProvider extends ChangeNotifier {
       }
     }
     return null; // All lessons completed
+  }
+
+  /// Lesson immediately after [currentLessonId] in class order, if any.
+  Lesson? getNextLesson(String currentLessonId) {
+    final index = _lessonOrder.indexOf(currentLessonId);
+    if (index == -1 || index >= _lessonOrder.length - 1) return null;
+    return _lessons[_lessonOrder[index + 1]];
   }
 
   /// Check if a lesson is unlocked (can be accessed)
