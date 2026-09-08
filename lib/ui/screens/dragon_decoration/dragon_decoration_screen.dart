@@ -77,17 +77,11 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
     ThemeData theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final double dragonSize = screenWidth * 0.75;
 
-    // Ensure environment size doesn't exceed screen bounds
+    // Width is based on the dragon; height fills leftover space so the
+    // habitat grows instead of leaving a gap above the item tray.
     final environmentWidth = (dragonSize * 1.25).clamp(0.0, screenWidth * 0.95);
-    final environmentHeight = (dragonSize * 1.8).clamp(0.0, screenHeight * 0.6);
-
-    final environmentSize = (
-      width: environmentWidth,
-      height: environmentHeight,
-    );
 
     return Consumer2<DragonDecorationProvider, DragonProvider>(
       builder: (context, dragonDecorationProvider, dragonProvider, child) {
@@ -377,123 +371,132 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
 
               // Dragon area with drop zone - wrapped in SizedBox for habitat-local coordinates
               Expanded(
-                child: Center(
-                  child: SizedBox(
-                    key: _habitatKey,
-                    width: environmentSize.width,
-                    height: environmentSize.height,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      clipBehavior: Clip.hardEdge,
-                      children: [
-                        // Environment background
-                        if (dragonDecorationProvider.getCurrentEnvironment() !=
-                            null)
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24),
-                                image: DecorationImage(
-                                  image: NetworkImage(
-                                    dragonDecorationProvider
-                                        .getCurrentEnvironment()!
-                                        .imageUrl,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final environmentSize = (
+                      width: environmentWidth.clamp(0.0, constraints.maxWidth),
+                      height: constraints.maxHeight,
+                    );
+
+                    return Align(
+                      alignment: Alignment.bottomCenter,
+                      child: SizedBox(
+                        key: _habitatKey,
+                        width: environmentSize.width,
+                        height: environmentSize.height,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          clipBehavior: Clip.hardEdge,
+                          children: [
+                            // Environment background
+                            if (dragonDecorationProvider
+                                    .getCurrentEnvironment() !=
+                                null)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(24),
+                                    image: DecorationImage(
+                                      image: NetworkImage(
+                                        dragonDecorationProvider
+                                            .getCurrentEnvironment()!
+                                            .imageUrl,
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                  fit: BoxFit.cover,
                                 ),
+                              ),
+
+                            // Stickers behind the dragon
+                            ...dragonDecorationProvider.placedStickers
+                                .where((sticker) => sticker.isBehindDragon)
+                                .map((sticker) {
+                                  final isSelected =
+                                      dragonDecorationProvider
+                                          .selectedStickerId ==
+                                      sticker.id;
+
+                                  return _buildSticker(
+                                    sticker,
+                                    isSelected,
+                                    environmentSize,
+                                    dragonDecorationProvider,
+                                  );
+                                }),
+
+                            // Drop zone for dragon
+                            // Wrapped in IgnorePointer when not dragging to allow stickers behind to receive touches
+                            DragTarget<Map<String, dynamic>>(
+                              hitTestBehavior: HitTestBehavior.translucent,
+                              builder: (context, candidateData, rejectedData) {
+                                return IgnorePointer(
+                                  ignoring: candidateData.isEmpty,
+                                  child: Container(
+                                    width: environmentSize.width,
+                                    height: environmentSize.height,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          candidateData.isNotEmpty
+                                              ? colorScheme.primary.withValues(
+                                                alpha: 0.1,
+                                              )
+                                              : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color:
+                                            candidateData.isNotEmpty
+                                                ? colorScheme.primary
+                                                : colorScheme.primary
+                                                    .withValues(alpha: 0.2),
+                                        width: candidateData.isNotEmpty ? 3 : 2,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              onAcceptWithDetails: (details) {
+                                _handleStickerDrop(
+                                  details,
+                                  dragonSize,
+                                  environmentSize,
+                                  dragonDecorationProvider,
+                                );
+                              },
+                            ),
+
+                            // Dragon Image - wrapped in IgnorePointer so stickers behind can be interacted with
+                            IgnorePointer(
+                              child: DragonImageWidget(
+                                dragonId: widget.dragonId,
+                                size: dragonSize * 0.75,
+                                phase: selectedPhase,
                               ),
                             ),
-                          ),
 
-                        // Stickers behind the dragon
-                        ...dragonDecorationProvider.placedStickers
-                            .where((sticker) => sticker.isBehindDragon)
-                            .map((sticker) {
-                              final isSelected =
-                                  dragonDecorationProvider.selectedStickerId ==
-                                  sticker.id;
+                            // Stickers in front of the dragon
+                            ...dragonDecorationProvider.placedStickers
+                                .where((sticker) => !sticker.isBehindDragon)
+                                .map((sticker) {
+                                  final isSelected =
+                                      dragonDecorationProvider
+                                          .selectedStickerId ==
+                                      sticker.id;
 
-                              return _buildSticker(
-                                sticker,
-                                isSelected,
-                                environmentSize,
-                                dragonDecorationProvider,
-                              );
-                            }),
-
-                        // Drop zone for dragon
-                        // Wrapped in IgnorePointer when not dragging to allow stickers behind to receive touches
-                        DragTarget<Map<String, dynamic>>(
-                          hitTestBehavior: HitTestBehavior.translucent,
-                          builder: (context, candidateData, rejectedData) {
-                            return IgnorePointer(
-                              ignoring: candidateData.isEmpty,
-                              child: Container(
-                                width: environmentSize.width,
-                                height: environmentSize.height,
-                                decoration: BoxDecoration(
-                                  color:
-                                      candidateData.isNotEmpty
-                                          ? colorScheme.primary.withValues(
-                                            alpha: 0.1,
-                                          )
-                                          : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color:
-                                        candidateData.isNotEmpty
-                                            ? colorScheme.primary
-                                            : colorScheme.primary.withValues(
-                                              alpha: 0.2,
-                                            ),
-                                    width: candidateData.isNotEmpty ? 3 : 2,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          onAcceptWithDetails: (details) {
-                            _handleStickerDrop(
-                              details,
-                              dragonSize,
-                              environmentSize,
-                              dragonDecorationProvider,
-                            );
-                          },
+                                  return _buildSticker(
+                                    sticker,
+                                    isSelected,
+                                    environmentSize,
+                                    dragonDecorationProvider,
+                                  );
+                                }),
+                          ],
                         ),
-
-                        // Dragon Image - wrapped in IgnorePointer so stickers behind can be interacted with
-                        IgnorePointer(
-                          child: DragonImageWidget(
-                            dragonId: widget.dragonId,
-                            size: dragonSize * 0.75,
-                            phase: selectedPhase,
-                          ),
-                        ),
-
-                        // Stickers in front of the dragon
-                        ...dragonDecorationProvider.placedStickers
-                            .where((sticker) => !sticker.isBehindDragon)
-                            .map((sticker) {
-                              final isSelected =
-                                  dragonDecorationProvider.selectedStickerId ==
-                                  sticker.id;
-
-                              return _buildSticker(
-                                sticker,
-                                isSelected,
-                                environmentSize,
-                                dragonDecorationProvider,
-                              );
-                            }),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
-
-              // Whitespace between dragon habitat and item collection
-              const SizedBox(height: 24),
 
               // Accessory picker
               StickerCollectionWidget(
