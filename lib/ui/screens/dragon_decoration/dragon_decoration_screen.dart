@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:safe_scales/providers/dragon_decoration_provider.dart';
 import 'package:safe_scales/ui/widgets/dragon_image_widget.dart';
+import 'package:safe_scales/ui/widgets/dress_up_action_button.dart';
 import 'package:safe_scales/ui/widgets/sticker_collection_widget.dart';
 import 'package:safe_scales/models/sticker_item_model.dart';
 import '../../../providers/dragon_provider.dart';
@@ -183,40 +184,17 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
           ),
           body: Column(
             children: [
-              // Hint info with hints button
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 10),
-                          Text(
-                            'Tap an item to move and resize it',
-                            style: theme.textTheme.labelSmall,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Use buttons to resize or change layer',
-                            style: theme.textTheme.labelSmall,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Long press an item to remove it',
-                            style: theme.textTheme.labelSmall,
-                          ),
-                          SizedBox(height: 10),
-                        ],
-                      ),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: Center(
+                  child: Text(
+                    'Dress up your dragon',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w400,
                     ),
-                    IconButton(
-                      icon: Icon(Icons.help_outline, size: 28),
-                      tooltip: 'Tips from Dr. Page and Mia',
-                      onPressed: _showHintsDialog,
-                    ),
-                  ],
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
 
@@ -227,148 +205,37 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                   vertical: 15,
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () => _showPhaseDialog(),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                theme.brightness == Brightness.light
-                                    ? colorScheme.primary.withValues(alpha: 0.2)
-                                    : colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color:
-                                  theme.brightness == Brightness.light
-                                      ? colorScheme.primary.withValues(
-                                        alpha: 0.6,
-                                      )
-                                      : colorScheme.primary.withValues(
-                                        alpha: 0.3,
-                                      ),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                FontAwesomeIcons.dragon,
-                                size: 20,
-                                color:
-                                    theme.brightness == Brightness.light
-                                        ? colorScheme.primary
-                                        : colorScheme.onPrimaryContainer,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  'Dragon Phase',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        theme.brightness == Brightness.light
-                                            ? colorScheme.primary
-                                            : colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+                      child: DressUpActionButton(
+                        icon: const FaIcon(FontAwesomeIcons.dragon, size: 20),
+                        title: 'Phase',
+                        subtitle: dragonProvider.getPhaseDisplayName(
+                          selectedPhase.isNotEmpty
+                              ? selectedPhase
+                              : widget.currentPhase,
                         ),
+                        onTap: _showPhaseDialog,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () => _showEnvironmentDialog(),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                dragonDecorationProvider
-                                            .getCurrentEnvironment() !=
-                                        null
-                                    ? (theme.brightness == Brightness.light
-                                        ? colorScheme.primary.withValues(
-                                          alpha: 0.2,
-                                        )
-                                        : colorScheme.primaryContainer)
-                                    : (theme.brightness == Brightness.light
-                                        ? _lightModeUnselectedSurface(
-                                          colorScheme,
-                                        )
-                                        : colorScheme.surfaceContainerHighest),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color:
-                                  dragonDecorationProvider
-                                              .getCurrentEnvironment() !=
-                                          null
-                                      ? (theme.brightness == Brightness.light
-                                          ? colorScheme.primary.withValues(
-                                            alpha: 0.6,
-                                          )
-                                          : colorScheme.primary.withValues(
-                                            alpha: 0.3,
-                                          ))
-                                      : colorScheme.outline.withValues(
-                                        alpha: 0.3,
-                                      ),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.landscape,
-                                size: 20,
-                                color:
-                                    dragonDecorationProvider
-                                                .getCurrentEnvironment() !=
-                                            null
-                                        ? (theme.brightness == Brightness.light
-                                            ? colorScheme.primary
-                                            : colorScheme.onPrimaryContainer)
-                                        : colorScheme.onSurfaceVariant,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  _getEnvironmentDisplayName(
-                                    dragonDecorationProvider,
-                                  ),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        dragonDecorationProvider
-                                                    .getCurrentEnvironment() !=
-                                                null
-                                            ? (theme.brightness ==
-                                                    Brightness.light
-                                                ? colorScheme.primary
-                                                : colorScheme
-                                                    .onPrimaryContainer)
-                                            : colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+                      child: DressUpActionButton(
+                        icon: const Icon(Icons.home_outlined, size: 22),
+                        title: 'Habitat',
+                        subtitle: _getEnvironmentDisplayName(
+                          dragonDecorationProvider,
                         ),
+                        onTap: _showEnvironmentDialog,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DressUpActionButton(
+                        icon: const Icon(Icons.help_outline, size: 22),
+                        title: 'Help',
+                        onTap: _showHintsDialog,
                       ),
                     ),
                   ],
@@ -796,7 +663,7 @@ class _DragonDressUpPageState extends State<DragonDressUpPage> {
                   Row(
                     children: [
                       Icon(
-                        Icons.landscape,
+                        Icons.home_outlined,
                         color: colorScheme.primary,
                         size: 28,
                       ),
