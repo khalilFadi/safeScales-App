@@ -95,11 +95,11 @@ void main() {
     );
 
     expect(header.style?.fontSize, 18);
-    expect(body.style.fontSize, 15);
+    expect(body.style.fontSize, QuizStartBody.detailsBodyFontSize);
     expect(header.style!.fontSize! > body.style.fontSize!, isTrue);
   });
 
-  testWidgets('short iPhone-sized viewport can scroll to START', (
+  testWidgets('short iPhone-sized viewport keeps START visible', (
     WidgetTester tester,
   ) async {
     // Short height + large text scale mimics iPhone 14 overflow.
@@ -119,9 +119,12 @@ void main() {
 
     expect(find.text('Details'), findsOneWidget);
     expect(find.text('To Pass this Quiz'), findsOneWidget);
+    expect(find.text('START').hitTestable(), findsOneWidget);
 
     await tester.scrollUntilVisible(
-      find.text('START'),
+      find.text(
+        'You can use the audio feature to listen to the question instead of reading.',
+      ),
       80,
       scrollable: find.byType(Scrollable),
     );
