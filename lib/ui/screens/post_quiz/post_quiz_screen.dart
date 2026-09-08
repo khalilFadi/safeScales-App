@@ -12,6 +12,7 @@ import 'package:safe_scales/services/user_state_service.dart';
 import '../../../providers/course_provider.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/question_widget.dart';
+import '../../widgets/quiz_start_body.dart';
 import '../../widgets/tts_progress_bar.dart';
 import '../../widgets/voice_button.dart';
 import '../../../services/tts_service.dart';
@@ -390,11 +391,9 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
-
     AppBar appBar = AppBar(
       centerTitle: true,
-      title: Text('Post-Quiz'),
+      title: Text(isStarted ? 'Post-Quiz' : 'Quiz'),
       actions:
           isStarted
               ? [
@@ -416,69 +415,10 @@ class _PostQuizScreenState extends State<PostQuizScreen> {
     if (!isStarted) {
       return Scaffold(
         appBar: appBar,
-        body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 25),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.questionSet.title,
-                style: theme.textTheme.headlineSmall,
-              ),
-
-              SizedBox(height: 15),
-
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${widget.questionSet.passingScore}% or higher is required to pass this quiz',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 20),
-
-                      Row(
-                        children: [
-                          Text(
-                            '${widget.questionSet.questions.length} questions',
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ),
-              Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _startPostQuiz,
-                  child: Text(
-                    'Start'.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: theme.textTheme.bodyMedium?.fontSize,
-                      color: theme.colorScheme.onPrimary,
-                    ),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 30),
-            ],
-          ),
+        body: QuizStartBody(
+          questionSet: widget.questionSet,
+          onStart: _startPostQuiz,
+          showTableOfContentsHint: true,
         ),
       );
     }
