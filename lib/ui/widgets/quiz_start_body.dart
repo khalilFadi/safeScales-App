@@ -3,9 +3,9 @@ import 'package:safe_scales/models/question.dart';
 
 /// Shared pre-quiz / post-quiz intro: title card, Details, and START.
 ///
-/// The body is scrollable so START stays reachable on short viewports
-/// (and when text scale is large). Text below the Details header uses
-/// [TextTheme.bodySmall]; the Details header itself keeps headline size.
+/// START is pinned below the fold so it stays tappable on short viewports.
+/// The title and Details header keep headline size; everything under
+/// Details uses a smaller body size.
 class QuizStartBody extends StatelessWidget {
   const QuizStartBody({
     super.key,
@@ -26,10 +26,15 @@ class QuizStartBody extends StatelessWidget {
     return ((passingScorePercent / 100) * totalQuestions).ceil();
   }
 
+  /// Size for copy under the Details header (not the header itself).
+  static const double detailsBodyFontSize = 13;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final TextStyle? detailsBodyStyle = theme.textTheme.bodySmall;
+    final TextStyle detailsBodyStyle = (theme.textTheme.bodySmall ??
+            const TextStyle())
+        .copyWith(fontSize: detailsBodyFontSize);
 
     final Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +49,7 @@ class QuizStartBody extends StatelessWidget {
         const SizedBox(height: 12),
         DefaultTextStyle.merge(
           key: const Key('quiz-start-details-body'),
-          style: detailsBodyStyle ?? const TextStyle(fontSize: 15),
+          style: detailsBodyStyle,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -75,32 +80,22 @@ class QuizStartBody extends StatelessWidget {
       ),
     );
 
-    const EdgeInsets padding = EdgeInsets.fromLTRB(24, 16, 24, 8);
-
     return SafeArea(
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final double minHeight = (constraints.maxHeight - padding.vertical)
-              .clamp(0.0, double.infinity);
-
-          return SingleChildScrollView(
-            padding: padding,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: minHeight),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  content,
-                  Padding(
-                    padding: const EdgeInsets.only(top: 24),
-                    child: startButton,
-                  ),
-                ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: content,
               ),
             ),
-          );
-        },
+            const SizedBox(height: 16),
+            startButton,
+          ],
+        ),
       ),
     );
   }
