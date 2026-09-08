@@ -7,6 +7,7 @@ import '../../../models/sticker_item_model.dart';
 import '../../../providers/shop_provider.dart';
 import '../../../themes/app_theme.dart';
 import '../../widgets/dragon_image_widget.dart';
+import '../../widgets/scrollable_completion_body.dart';
 import '../../widgets/shop_item_card.dart';
 
 class ReviewResultsScreen extends StatefulWidget {
@@ -299,54 +300,42 @@ class _ReviewResultsScreen extends State<ReviewResultsScreen> {
   Widget _buildRewardScreen(BuildContext context) {
     ThemeData theme = Theme.of(context);
 
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 25),
-        child: Column(
-          children: [
-            Text(
-              'Great job completing the review!',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+    return ScrollableCompletionBody(
+      content: Column(
+        children: [
+          Text(
+            'Great job completing the review!',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-
-            SizedBox(height: 30),
-
-            Text(
-              'Here\'s your new item',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 30),
+          Text(
+            'Here\'s your new item',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge,
+          ),
+          SizedBox(height: 30),
+          _buildImageWidget(context),
+        ],
+      ),
+      action: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context, true);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.colorScheme.secondary,
+            foregroundColor: theme.colorScheme.onSecondary,
+          ),
+          child: Text(
+            'Return'.toUpperCase(),
+            style: TextStyle(
+              fontSize: theme.textTheme.bodyMedium?.fontSize,
             ),
-
-            SizedBox(height: 30),
-
-            _buildImageWidget(context),
-
-            SizedBox(height: 30),
-
-            Spacer(),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, true);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.secondary,
-                  foregroundColor: theme.colorScheme.onSecondary,
-                ),
-                child: Text(
-                  'Return'.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: theme.textTheme.bodyMedium?.fontSize,
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safe_scales/ui/widgets/dragon_image_widget.dart';
+import 'package:safe_scales/ui/widgets/scrollable_completion_body.dart';
 
 class ReadingResultScreen extends StatefulWidget {
   const ReadingResultScreen({super.key, required this.modeuleId});
@@ -33,65 +34,50 @@ class _ReadingResultScreenState extends State<ReadingResultScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 25),
-          child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Great job completing the reading!',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+      body: ScrollableCompletionBody(
+        content: Column(
+          children: [
+            Text(
+              'Great job completing the reading!',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-
-              SizedBox(height: 30),
-
-              Text(
-                'Your new dragon is now a teenage dragon!',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 30),
+            Text(
+              'Your new dragon is now a teenage dragon!',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge,
+            ),
+            SizedBox(height: 30),
+            DragonImageWidget(
+              moduleId: widget.modeuleId,
+              phase: 'stage2',
+              size: 300,
+            ),
+            SizedBox(height: 30),
+            Text(
+              'Complete the Post-Quiz with a passing score for your dragon to become a full adult.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        action: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _isNavigating ? null : _handleReturnToLesson,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.secondary,
+              foregroundColor: theme.colorScheme.onSecondary,
+            ),
+            child: Text(
+              'Return to lesson'.toUpperCase(),
+              style: TextStyle(
+                fontSize: theme.textTheme.bodyMedium?.fontSize,
               ),
-
-              SizedBox(height: 30),
-
-              DragonImageWidget(
-                moduleId: widget.modeuleId,
-                phase: 'stage2',
-                size: 300,
-              ),
-
-              SizedBox(height: 30),
-
-              Text(
-                'Complete the Post-Quiz with a passing score for your dragon to become a full adult.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
-
-              SizedBox(height: 30),
-
-              Spacer(),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isNavigating ? null : _handleReturnToLesson,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.secondary,
-                    foregroundColor: theme.colorScheme.onSecondary,
-                  ),
-                  child: Text(
-                    'Return to lesson'.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: theme.textTheme.bodyMedium?.fontSize,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
