@@ -99,10 +99,10 @@ void main() {
     expect(header.style!.fontSize! > body.style.fontSize!, isTrue);
   });
 
-  testWidgets('short iPhone-sized viewport can scroll to START', (
+  testWidgets('short iPhone-sized viewport keeps START tappable', (
     WidgetTester tester,
   ) async {
-    // Short height + large text scale mimics iPhone 14 overflow.
+    // Short height + large text scale mimics iPhone overflow.
     await tester.binding.setSurfaceSize(const Size(390, 520));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -118,16 +118,11 @@ void main() {
     );
 
     expect(find.text('Details'), findsOneWidget);
-    expect(find.text('To Pass this Quiz'), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('START'),
-      80,
-      scrollable: find.byType(Scrollable),
-    );
-    await tester.pumpAndSettle();
-
+    expect(find.byKey(const Key('quiz-start-button')).hitTestable(), findsOneWidget);
     expect(find.text('START').hitTestable(), findsOneWidget);
+
+    final double startBottom = tester.getRect(find.text('START')).bottom;
+    expect(startBottom, lessThanOrEqualTo(520));
   });
 
   testWidgets('pre-quiz intro omits passing card and table-of-contents hint', (

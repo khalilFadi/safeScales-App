@@ -3,9 +3,9 @@ import 'package:safe_scales/models/question.dart';
 
 /// Shared pre-quiz / post-quiz intro: title card, Details, and START.
 ///
-/// The body is scrollable so START stays reachable on short viewports
-/// (and when text scale is large). Text below the Details header uses
-/// [TextTheme.bodySmall]; the Details header itself keeps headline size.
+/// START is pinned below the scrollable details so it stays tappable on
+/// short iPhone viewports (home indicator, Dynamic Type). Text below the
+/// Details header uses [TextTheme.bodySmall]; the header keeps headline size.
 class QuizStartBody extends StatelessWidget {
   const QuizStartBody({
     super.key,
@@ -64,6 +64,7 @@ class QuizStartBody extends StatelessWidget {
     final Widget startButton = SizedBox(
       width: double.infinity,
       child: ElevatedButton(
+        key: const Key('quiz-start-button'),
         onPressed: onStart,
         child: Text(
           'Start'.toUpperCase(),
@@ -75,32 +76,22 @@ class QuizStartBody extends StatelessWidget {
       ),
     );
 
-    const EdgeInsets padding = EdgeInsets.fromLTRB(24, 16, 24, 8);
-
     return SafeArea(
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final double minHeight = (constraints.maxHeight - padding.vertical)
-              .clamp(0.0, double.infinity);
-
-          return SingleChildScrollView(
-            padding: padding,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: minHeight),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  content,
-                  Padding(
-                    padding: const EdgeInsets.only(top: 24),
-                    child: startButton,
-                  ),
-                ],
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              child: content,
             ),
-          );
-        },
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+            child: startButton,
+          ),
+        ],
       ),
     );
   }
