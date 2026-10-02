@@ -1,0 +1,56 @@
+# iOS TestFlight workflow for Safe Scales (com.safescales.byu).
+# Requires Codemagic UI setup before the first successful upload:
+# - Team integrations: App Store Connect API key (referenced below as "codemagic";
+#   rename this value to match the key name you create in Codemagic)
+# - Code signing identities: iOS distribution certificate + App Store provisioning
+#   profile for bundle id com.safescales.byu (distribution_type: app_store)
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    integrations:
+      # Must match the App Store Connect API key name in Codemagic Team settings.
+      app_store_connect: codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.safescales.byu
+      vars:
+        BUNDLE_ID: com.safescales.byu
+      # Flutter >= 3.27 required by pubspec.lock. Do not use 3.7.2 (that is a
+      # Dart SDK constraint, not a Flutter release). Stay below 3.44 while
+      # font_awesome_flutter is pinned to 10.x (IconData became final in 3.44).
+      flutter: 3.41.9
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+      - name: Install pods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: Flutter build ipa
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - aspscratch@gmail.com
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        auth: integration
+        # Upload to App Store Connect / TestFlight. No App Store submission.
+        submit_to_testflight: true
+        submit_to_app_store: false
